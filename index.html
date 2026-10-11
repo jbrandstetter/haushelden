@@ -200,6 +200,33 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
 .todo.ev .evi { width: 30px; height: 30px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-size: 16px;
   background: color-mix(in srgb, var(--ec) 25%, transparent); }
 .todo .time { font-weight: 800; margin-right: 6px; color: var(--subtext); }
+
+/* shopping */
+.shopbtn { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 620px; margin: 14px auto 0; border: 0; border-radius: 22px;
+  background: var(--card); box-shadow: var(--shadow); padding: 14px 16px; text-align: left; }
+.shopbtn .ic { font-size: 30px; }
+.shopbtn b { display: block; font-size: 18px; }
+.shopbtn span { color: var(--subtext); font-size: 14px; }
+.ltabs { display: flex; gap: 8px; margin: 4px 0 12px; }
+.ltabs button { flex: 1; border: 0; border-radius: 16px; background: var(--card); box-shadow: var(--shadow); padding: 12px; font-weight: 800; font-size: 17px; }
+.ltabs button[aria-pressed="true"] { background: var(--c); color: var(--on-accent); }
+.ltabs small { font-weight: 700; opacity: 0.75; margin-left: 4px; }
+.sugg { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 4px; }
+.sugg button { border: 0; border-radius: 999px; background: var(--card); box-shadow: var(--shadow); padding: 7px 12px; font-size: 15px; font-weight: 650; }
+.sugg button small { color: var(--overlay); font-weight: 600; margin-left: 4px; }
+.sitem { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 16px; padding: 10px 12px; box-shadow: var(--shadow); }
+.sitem .cb { width: 30px; height: 30px; border-radius: 8px; border: 3px solid color-mix(in srgb, var(--c) 50%, transparent); background: transparent; flex: none;
+  display: flex; align-items: center; justify-content: center; padding: 0; }
+.sitem .cb svg { width: 16px; height: 16px; opacity: 0; color: var(--on-accent); }
+.sitem.bought .cb { background: var(--c); border-color: var(--c); }
+.sitem.bought .cb svg { opacity: 1; }
+.sitem.bought .nm { text-decoration: line-through; color: var(--overlay); }
+.sitem .nm { flex: 1; font-size: 18px; font-weight: 650; min-width: 0; }
+.sitem .nm small { display: block; font-size: 12px; font-weight: 600; color: var(--overlay); }
+.sitem .by { font-size: 20px; }
+.sitem .x { border: 0; background: transparent; color: var(--overlay); font-size: 20px; padding: 4px 6px; }
+.learned { font-size: 14px; width: 100%; border-collapse: collapse; }
+.learned td { padding: 5px 4px; border-bottom: 1px solid var(--surface0); }
 </style>
 </head>
 <body>
@@ -241,7 +268,29 @@ const DEFAULT = () => ({
   ],
   done: {},   // 'YYYY-MM-DD' -> { 'itemId:personId': true }
   ...ADULT_DEFAULTS(),
+  ...SHOP_DEFAULTS(),
 });
+// shopping lists; `hist` remembers every item ever bought (per list) and learns how often it is needed
+const SHOP_DEFAULTS = () => ({
+  lists: [{ id: 'food', emoji: '🛒', name: 'Lebensmittel' }, { id: 'dm', emoji: '🧴', name: 'dm' }],
+  shop: [],          // { id, list, name, by: personId|null, auto, bought: dayNumber|null }
+  hist: demoHistory(),
+  autoAdd: true,
+  demoHist: true,
+});
+// Prototype: a made-up buying history so the learning is visible from day one (removable in settings)
+function demoHistory() {
+  const t = todayN(), h = {};
+  const sample = { food: [['Milch', 4], ['Brot', 3], ['Eier', 7], ['Bananen', 6], ['Butter', 10], ['Käse', 8], ['Joghurt', 5], ['Äpfel', 7], ['Nudeln', 14], ['Kaffee', 12]],
+    dm: [['Zahnpasta', 30], ['Duschgel', 25], ['Toilettenpapier', 14], ['Shampoo', 35], ['Spülmaschinentabs', 21], ['Taschentücher', 18]] };
+  for (const [list, items] of Object.entries(sample)) for (const [name, every] of items) {
+    const buys = [];
+    let d = t - every + Math.floor(Math.random() * 4) - 1;                // some are due now, some soon
+    for (let i = 0; i < 6 && d > t - 200; i++) { buys.unshift(d); d -= every + Math.floor(Math.random() * 3) - 1; }
+    h[list + '|' + name.toLowerCase()] = { name, list, buys, skipUntil: 0 };
+  }
+  return h;
+}
 // grown-ups: own to-dos, areas of responsibility with a main contact (owner)
 const ADULT_DEFAULTS = () => ({
   adults: [
@@ -267,6 +316,7 @@ const ADULT_DEFAULTS = () => ({
 const KEY = 'haushelden.v1';
 let state = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || DEFAULT(); } catch { return DEFAULT(); } })();
 if (!state.adults) { Object.assign(state, ADULT_DEFAULTS()); state.setup = false; }   // older prototype data: ask for the grown-ups' names
+if (!state.lists) Object.assign(state, SHOP_DEFAULTS());
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
 const kid = id => state.kids.find(k => k.id === id);
 const adult = id => state.adults.find(a => a.id === id);
@@ -385,6 +435,7 @@ function render() {
   if (!state.setup) return renderSetup();
   if (name === 'kind' && kid(arg)) return renderKid(kid(arg));
   if (name === 'ich' && adult(arg)) return renderAdult(adult(arg));
+  if (name === 'einkauf') return renderShop(arg);
   if (name === 'eltern') return renderParents();
   return renderWho();
 }
@@ -426,7 +477,9 @@ function renderWho() {
       return `<button class="profile" data-a="${a.id}" style="--c:var(--${a.color})"><div class="av">${a.emoji}</div>
         <div><div class="nm">${esc(a.name)}</div><div class="pr">${n ? `${n} offen` : 'Nichts offen'}${overdue(a) ? ` · <b style="color:var(--red)">${overdue(a)} überfällig</b>` : ''}</div></div></button>`;
     }).join('')}</div>
+    ${shopButton()}
     <div style="text-align:center;margin-top:24px"><button class="link" id="parents">Einstellungen</button></div></div>`;
+  bindShopButton('');
   view.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { location.hash = '#/kind/' + b.dataset.k; });
   view.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { location.hash = '#/ich/' + b.dataset.a; });
   document.getElementById('parents').onclick = () => { location.hash = '#/eltern'; };
@@ -463,7 +516,9 @@ function renderKid(k) {
     <div class="section">Diese Woche</div>
     ${weekHTML(k)}
     <div class="streak">${streak(k) > 1 ? `🔥 ${streak(k)} Tage am Stück alles geschafft` : ''}</div>
+    ${shopButton()}
     <div style="text-align:center;margin-top:18px"><button class="link" id="snd">${state.sound ? '🔊 Ton an' : '🔇 Ton aus'}</button></div>`;
+  bindShopButton(k.id);
 
   const line = document.getElementById('line');
   line.textContent = first ? greeting(k) : (p.total && p.done === p.total ? fill(pick(LINES.allDone), k) : !its.length ? fill(pick(LINES.free), k) : fill(pick(LINES.idle), k));
@@ -638,7 +693,7 @@ function renderAdult(a) {
       return `<div class="prog" style="--c:var(--${k.color})"><b>${k.emoji} ${esc(k.name)}</b><div class="bar"><i style="width:${p.total ? p.done / p.total * 100 : 100}%"></i></div><span>${p.done}/${p.total}</span></div>`;
     }).join('')}</div>
 
-    <div style="margin-bottom:12px"><div class="seg2"><button data-mode="list" aria-pressed="${adultMode === 'list'}">Liste</button><button data-mode="cal" aria-pressed="${adultMode === 'cal'}">Kalender</button></div></div>
+    <div style="margin-bottom:12px"><div class="seg2"><button data-mode="list" aria-pressed="${adultMode === 'list'}">Liste</button><button data-mode="cal" aria-pressed="${adultMode === 'cal'}">Kalender</button><button id="toshop">🛒 Einkauf${openShop() ? ` (${openShop()})` : ''}</button></div></div>
     <form class="qa" id="qa"><input id="qat" placeholder="Neue Aufgabe${fa ? ' für ' + esc(fa.name) : ''}${adultMode === 'cal' ? ' am ' + new Date(calSel * DAY).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric', timeZone: 'UTC' }) : ''}…" autocomplete="off"><button aria-label="Hinzufügen">+</button></form>
     <div class="chips" style="margin-top:8px">${adultMode === 'cal' ? '' : dueOptions().slice(0, 3).map(([v, l]) => `<button data-adue="${v}" aria-pressed="${addDue === v}">${l}</button>`).join('') + '<span style="width:10px"></span>'}
       <button data-awho="me" aria-pressed="${addWho === 'me'}">Für mich</button>
@@ -674,6 +729,7 @@ function renderAdult(a) {
   };
   view.querySelectorAll('[data-adue]').forEach(b => b.onclick = () => { addDue = b.dataset.adue; renderAdult(a); });
   view.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { adultMode = b.dataset.mode; editing = null; renderAdult(a); });
+  $('toshop').onclick = () => { location.hash = '#/einkauf/' + a.id; };
   view.querySelectorAll('.mcal [data-day]').forEach(b => b.onclick = () => { calSel = +b.dataset.day; editing = null; renderAdult(a); });
   if ($('prevm')) {
     $('prevm').onclick = () => { calMonth--; calSel = monthStart(calMonth); renderAdult(a); };
@@ -704,6 +760,117 @@ function renderAdult(a) {
     box.querySelector('[data-close]').onclick = () => { editing = null; renderAdult(a); };
     box.querySelector('[data-delt]').onclick = () => { state.todos = state.todos.filter(y => y !== x); editing = null; save(); renderAdult(a); };
   }
+}
+
+// ---------------------------------------------------------------- shopping
+const norm = s => s.trim().toLowerCase().replace(/\s+/g, ' ');
+const hkey = (list, name) => list + '|' + norm(name);
+const person = id => kid(id) || adult(id);
+const openShop = () => state.shop.filter(x => !x.bought).length;
+function shopButton() {
+  const n = openShop();
+  return `<button class="shopbtn" id="shopbtn"><span class="ic">🛒</span><span style="flex:1"><b>Einkaufsliste</b>
+    <span>${n ? `${n} Sachen drauf` : 'Leer'} · Lebensmittel & dm</span></span><span style="font-size:22px;color:var(--overlay)">›</span></button>`;
+}
+function bindShopButton(who) { const b = document.getElementById('shopbtn'); if (b) b.onclick = () => { location.hash = '#/einkauf/' + who; }; }
+
+// how often is this bought? median of the last intervals between purchases (needs 2+ purchases)
+function rhythm(h) {
+  const b = h.buys; if (b.length < 2) return null;
+  const iv = []; for (let i = 1; i < b.length; i++) iv.push(b[i] - b[i - 1]);
+  const last5 = iv.slice(-5).sort((x, y) => x - y);
+  const every = Math.max(1, Math.round(last5[Math.floor(last5.length / 2)]));
+  return { every, last: b[b.length - 1], due: b[b.length - 1] + every };
+}
+const onList = list => new Set(state.shop.filter(x => x.list === list && !x.bought).map(x => norm(x.name)));
+const onListOrCart = list => new Set(state.shop.filter(x => x.list === list).map(x => norm(x.name)));   // for suggestions
+function dueFor(list) {
+  const t = todayN(), on = onListOrCart(list);
+  return Object.values(state.hist).filter(h => h.list === list && !on.has(norm(h.name)))
+    .map(h => ({ h, r: rhythm(h) })).filter(x => x.r && t >= x.r.due - 1 && !(x.h.skipUntil > t))
+    .sort((x, y) => (t - y.r.due) - (t - x.r.due));
+}
+function frequent(list, q = '') {
+  const on = onListOrCart(list), nq = norm(q);
+  return Object.values(state.hist).filter(h => h.list === list && !on.has(norm(h.name)) && (!nq || norm(h.name).includes(nq)))
+    .sort((x, y) => (nq && norm(y.name).startsWith(nq)) - (nq && norm(x.name).startsWith(nq)) || y.buys.length - x.buys.length);
+}
+// put due items on the list by themselves (marked ✨); removing one unbought pushes it back by half its rhythm
+function autoPopulate() {
+  if (!state.autoAdd) return;
+  for (const l of state.lists) for (const { h } of dueFor(l.id)) state.shop.push({ id: uid(), list: l.id, name: h.name, by: null, auto: true, bought: null });
+  save();
+}
+function addShop(list, name, by) {
+  name = name.trim(); if (!name) return false;
+  if (onList(list).has(norm(name))) return false;
+  state.shop.push({ id: uid(), list, name, by: by || null, auto: false, bought: null });
+  const k = hkey(list, name);
+  if (!state.hist[k]) state.hist[k] = { name, list, buys: [], skipUntil: 0 };
+  save(); return true;
+}
+function setBought(x, on) {
+  const t = todayN(), h = state.hist[hkey(x.list, x.name)] || (state.hist[hkey(x.list, x.name)] = { name: x.name, list: x.list, buys: [], skipUntil: 0 });
+  if (on) { x.bought = t; if (h.buys[h.buys.length - 1] !== t) h.buys.push(t); h.skipUntil = 0; }
+  else { if (x.bought === t && h.buys[h.buys.length - 1] === t) h.buys.pop(); x.bought = null; }
+  save();
+}
+
+let shopList = 'food', shopQuery = '';
+function renderShop(who) {
+  const me = person(who), t = todayN();
+  if (!state.lists.find(l => l.id === shopList)) shopList = state.lists[0].id;
+  document.documentElement.style.setProperty('--c', `var(--${me ? me.color : 'green'})`);
+  autoPopulate();
+  const L = state.lists.find(l => l.id === shopList);
+  const items = state.shop.filter(x => x.list === shopList);
+  const open = items.filter(x => !x.bought), cart = items.filter(x => x.bought);
+  const suggHTML = () => {
+    const sugg = shopQuery ? frequent(shopList, shopQuery).slice(0, 8) : (state.autoAdd ? frequent(shopList) : dueFor(shopList).map(x => x.h)).slice(0, 10);
+    return sugg.length ? `${!shopQuery ? `<span class="muted" style="font-size:13px;align-self:center;margin-right:4px">${state.autoAdd ? 'Oft gekauft:' : 'Bald wieder nötig:'}</span>` : ''}
+      ${sugg.map(h => `<button data-sg="${esc(h.name)}">+ ${esc(h.name)}${h.buys.length > 1 ? `<small>${h.buys.length}×</small>` : ''}</button>`).join('')}` : '';
+  };
+  const rhythmText = x => { const r = rhythm(state.hist[hkey(x.list, x.name)] || { buys: [] }); return r ? `etwa alle ${r.every} Tage · zuletzt ${t - r.last === 0 ? 'heute' : `vor ${t - r.last} Tagen`}` : ''; };
+  const itemRow = x => {
+    const by = person(x.by);
+    return `<div class="sitem ${x.bought ? 'bought' : ''}" data-s="${x.id}"><button class="cb" data-buy aria-label="Gekauft">${CHECK}</button>
+      <div class="nm">${esc(x.name)}${x.auto && !x.bought ? `<small>✨ automatisch · ${rhythmText(x)}</small>` : ''}</div>
+      <span class="by" title="${by ? esc(by.name) : 'automatisch'}">${by ? by.emoji : x.auto ? '✨' : ''}</span>
+      ${x.bought ? '' : '<button class="x" data-rm aria-label="Entfernen">×</button>'}</div>`;
+  };
+  view.innerHTML = `
+    <div class="top"><button class="av" id="back" aria-label="Zurück" style="--c:var(--${me ? me.color : 'green'})">${me ? me.emoji : '🛒'}</button>
+      <div class="hello"><b>Einkaufsliste</b><span>${me ? 'Hallo ' + esc(me.name) + '! ' : ''}Alle können etwas draufschreiben.</span></div></div>
+    <div class="ltabs">${state.lists.map(l => `<button data-list="${l.id}" aria-pressed="${l.id === shopList}">${l.emoji} ${esc(l.name)}<small>${state.shop.filter(x => x.list === l.id && !x.bought).length || ''}</small></button>`).join('')}</div>
+    <form class="qa" id="sqa"><input id="sqt" placeholder="Was fehlt bei ${esc(L.name)}?" value="${esc(shopQuery)}" autocomplete="off" autocorrect="on"><button aria-label="Hinzufügen">+</button></form>
+    <div class="sugg" id="sugg">${suggHTML()}</div>
+    <div class="section">${open.length ? `Noch zu kaufen (${open.length})` : 'Alles da'}</div>
+    <div class="todos">${open.map(itemRow).join('') || '<div class="note">Nichts auf der Liste. 🎉</div>'}</div>
+    ${cart.length ? `<div class="section">Im Wagen (${cart.length})</div><div class="todos">${cart.map(itemRow).join('')}</div>
+      <div style="margin-top:10px"><button class="btn primary" id="finish" style="background:var(--c)">Einkauf fertig – Liste aufräumen</button></div>` : ''}
+    <p class="muted" style="font-size:13px;margin-top:18px">Abhaken = gekauft. Die App merkt sich, wie oft ihr etwas kauft, und setzt es von selbst wieder auf die Liste, wenn es fällig ist (✨).
+      Was ihr ungekauft entfernt, kommt erst später wieder.${state.demoHist ? ' Gerade läuft ein <b>Beispiel-Verlauf</b> – unter Einstellungen löschbar.' : ''}</p>`;
+
+  const $ = id => document.getElementById(id);
+  $('back').onclick = () => { shopQuery = ''; location.hash = me ? (kid(who) ? '#/kind/' : '#/ich/') + who : '#/'; };
+  view.querySelectorAll('[data-list]').forEach(b => b.onclick = () => { shopList = b.dataset.list; shopQuery = ''; renderShop(who); });
+  const inp = $('sqt');
+  const bindSugg = () => view.querySelectorAll('[data-sg]').forEach(b => b.onclick = () => { addShop(shopList, b.dataset.sg, who); shopQuery = ''; renderShop(who); });
+  inp.oninput = () => { shopQuery = inp.value; $('sugg').innerHTML = suggHTML(); bindSugg(); };   // only the suggestions, so the keyboard stays put
+  $('sqa').onsubmit = e => {
+    e.preventDefault();
+    if (!addShop(shopList, inp.value, who)) { inp.select(); return; }
+    shopQuery = ''; renderShop(who); $('sqt').focus();
+  };
+  bindSugg();
+  const itemOf = el => state.shop.find(x => x.id === el.closest('[data-s]').dataset.s);
+  view.querySelectorAll('[data-buy]').forEach(b => b.onclick = () => { const x = itemOf(b); setBought(x, !x.bought); renderShop(who); });
+  view.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => {
+    const x = itemOf(b), h = state.hist[hkey(x.list, x.name)], r = h && rhythm(h);
+    if (x.auto && h && r) h.skipUntil = t + Math.ceil(r.every / 2);   // not needed yet: ask again later
+    state.shop = state.shop.filter(y => y !== x); save(); renderShop(who);
+  });
+  if ($('finish')) $('finish').onclick = () => { state.shop = state.shop.filter(x => !(x.list === shopList && x.bought)); save(); renderShop(who); };
 }
 
 // ---------------------------------------------------------------- parents
@@ -755,6 +922,20 @@ function renderParents() {
       <div class="lines">${Object.values(LINES).flat().map(l => `<div>${esc(l)}</div>`).join('')}</div>
     </div>
 
+    <div class="panel"><h3>Einkaufslisten</h3><div class="ed">${state.lists.map(l => `
+      <div class="edrow" data-li="${l.id}"><input type="text" class="emo" data-lf="emoji" value="${esc(l.emoji)}">
+        <div class="row" style="display:flex;gap:6px"><input type="text" data-lf="name" value="${esc(l.name)}">
+          ${state.lists.length > 1 ? '<button class="btn" data-delli style="padding:8px 10px">🗑</button>' : ''}</div></div>`).join('')}</div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="addli">+ Liste</button>
+        <button class="btn" id="autoadd">${state.autoAdd ? '✨ Automatisch auffüllen: an' : 'Automatisch auffüllen: aus'}</button></div>
+      <h3 style="margin-top:16px">Gelernt</h3>
+      <table class="learned">${Object.values(state.hist).filter(h => rhythm(h)).sort((x, y) => rhythm(x).every - rhythm(y).every).map(h => {
+        const r = rhythm(h), l = state.lists.find(x => x.id === h.list);
+        return `<tr><td>${l ? l.emoji : ''} ${esc(h.name)}</td><td>alle ~${r.every} Tage</td><td class="muted">${h.buys.length}× gekauft</td></tr>`;
+      }).join('') || '<tr><td class="muted">Noch nichts – nach dem zweiten Kauf eines Artikels geht es los.</td></tr>'}</table>
+      ${state.demoHist ? '<div style="margin-top:10px"><button class="btn" id="cleardemo">Beispiel-Verlauf löschen</button></div>' : ''}
+    </div>
+
     <div class="panel"><h3>Prototyp</h3><div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn" id="resetday">Heute zurücksetzen</button><button class="btn" id="resetall">Alles zurücksetzen</button></div></div>
   </div>`;
@@ -780,6 +961,14 @@ function renderParents() {
   view.querySelectorAll('[data-pet]').forEach(b => b.onclick = () => { state.pet = { emoji: b.dataset.pet, name: b.dataset.pn }; save(); renderParents(); });
   $('petname').oninput = () => { state.pet.name = $('petname').value; save(); };
   $('resetday').onclick = () => { delete state.done[keyN(t)]; save(); renderParents(); };
+  const listEl = el => state.lists.find(l => l.id === el.closest('[data-li]').dataset.li);
+  view.querySelectorAll('[data-lf]').forEach(inp => inp.oninput = () => { listEl(inp)[inp.dataset.lf] = inp.value; save(); });
+  view.querySelectorAll('[data-delli]').forEach(b => b.onclick = () => { const l = listEl(b); state.lists = state.lists.filter(x => x !== l); state.shop = state.shop.filter(x => x.list !== l.id); save(); renderParents(); });
+  $('addli').onclick = () => { state.lists.push({ id: uid(), emoji: '🏬', name: 'Neue Liste' }); save(); renderParents(); };
+  $('autoadd').onclick = () => { state.autoAdd = !state.autoAdd; save(); renderParents(); };
+  if ($('cleardemo')) $('cleardemo').onclick = () => {
+    state.hist = {}; state.demoHist = false; state.shop = state.shop.filter(x => !x.auto); save(); renderParents();
+  };
   let armed = false;
   $('resetall').onclick = () => {
     if (!armed) { armed = true; $('resetall').textContent = 'Nochmal tippen zum Löschen'; return; }
