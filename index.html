@@ -179,6 +179,27 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
 .filterbar { display: flex; align-items: center; gap: 8px; background: color-mix(in srgb, var(--c) 18%, var(--card)); border-radius: 14px; padding: 8px 12px; margin-top: 10px; font-weight: 700; }
 .filterbar button { margin-left: auto; border: 0; background: var(--card); border-radius: 10px; padding: 5px 10px; }
 .kidsum .prog b { width: 120px; }
+
+/* calendar (grown-ups) */
+.seg2 { display: inline-flex; background: var(--card); box-shadow: var(--shadow); border-radius: 12px; padding: 3px; }
+.seg2 button { border: 0; background: transparent; border-radius: 9px; padding: 7px 16px; font-weight: 700; }
+.seg2 button[aria-pressed="true"] { background: var(--c); color: var(--on-accent); }
+.calhead { display: flex; align-items: center; gap: 8px; margin: 16px 0 8px; }
+.calhead b { flex: 1; font-size: 18px; }
+.calhead button { border: 0; background: var(--card); box-shadow: var(--shadow); border-radius: 10px; min-width: 38px; height: 36px; font-weight: 700; padding: 0 10px; }
+.mcal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; background: var(--card); box-shadow: var(--shadow); border-radius: 18px; padding: 10px 8px; }
+.mcal .wd { text-align: center; font-size: 12px; color: var(--overlay); font-weight: 700; padding-bottom: 4px; }
+.mcal button { border: 0; background: transparent; border-radius: 12px; min-height: 54px; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 6px 0; font-weight: 650; }
+.mcal button .n { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+.mcal button.past { color: var(--overlay); }
+.mcal button.today .n { background: var(--c); color: var(--on-accent); }
+.mcal button.sel { background: color-mix(in srgb, var(--c) 18%, transparent); }
+.mcal .dots { display: flex; gap: 3px; height: 7px; }
+.mcal .dots i { width: 7px; height: 7px; border-radius: 50%; }
+.mcal .pad { visibility: hidden; }
+.todo.ev .evi { width: 30px; height: 30px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-size: 16px;
+  background: color-mix(in srgb, var(--ec) 25%, transparent); }
+.todo .time { font-weight: 800; margin-right: 6px; color: var(--subtext); }
 </style>
 </head>
 <body>
@@ -433,7 +454,7 @@ function renderKid(k) {
     <div class="section">Heute</div>
     <div class="tiles">${its.length ? its.map(it => {
       const done = isDone(k, it, t);
-      const tag = it.who === 'rotate' ? '<span class="tag">Heute du</span>' : it.kind === 'hobby' ? '<span class="tag">Hobby</span>' : '';
+      const tag = it.who === 'rotate' ? '<span class="tag">Heute du</span>' : it.kind === 'hobby' ? `<span class="tag">${it.time ? it.time + ' Uhr' : 'Hobby'}</span>` : '';
       return `<button class="tile ${done ? 'done' : ''}" data-it="${it.id}" style="--c:var(--${k.color})">
         <div class="tick">${CHECK}</div><div class="em">${it.emoji}</div><div class="tt">${esc(it.title)}</div>
         ${it.sub && it.who !== 'rotate' ? `<div class="st">${esc(it.sub)}</div>` : ''}${tag}</button>`;
@@ -529,6 +550,25 @@ function dueOptions() {
 }
 
 let areaFilter = null, editing = null, addDue = '', addWho = 'me';
+let adultMode = 'list', calMonth = null, calSel = null;
+const monthIdx = n => { const d = new Date(n * DAY); return d.getUTCFullYear() * 12 + d.getUTCMonth(); };
+const monthStart = mi => Date.UTC(Math.floor(mi / 12), mi % 12, 1) / DAY;
+// everything on day n for the family calendar: dated to-dos, the kids' hobbies, grown-up routines
+function calEntries(n) {
+  const k = keyN(n);
+  const todos = state.todos.filter(x => x.due === k && (!areaFilter || x.area === areaFilter));
+  const events = [], seen = new Set();
+  if (!areaFilter) {
+    for (const kd of state.kids) for (const it of itemsFor(kd, n)) if (it.kind === 'hobby') events.push({ it, color: kd.color, who: kd.name });
+    for (const ad of state.adults) for (const it of itemsFor(ad, n)) {
+      if (seen.has(it.id)) continue; seen.add(it.id);
+      events.push({ it, color: it.who === 'parents' ? 'lavender' : ad.color, who: it.who === 'parents' ? 'beide' : ad.name });
+    }
+  }
+  events.sort((x, y) => (x.it.time || '99').localeCompare(y.it.time || '99'));
+  return { todos, events };
+}
+const todoColors = x => x.who === 'parents' ? state.adults.map(a => a.color) : [(adult(x.who) || { color: 'overlay' }).color];
 function renderAdult(a) {
   document.documentElement.style.setProperty('--c', `var(--${a.color})`);
   const t = todayN(), tk = keyN(t);
@@ -561,6 +601,32 @@ function renderAdult(a) {
     <div class="chips"><button data-area2="" aria-pressed="${!x.area}">Kein Bereich</button>${state.areas.map(r => `<button data-area2="${r.id}" aria-pressed="${x.area === r.id}">${r.emoji} ${esc(r.name)}</button>`).join('')}</div>
     <div class="chips"><button data-close style="background:var(--c);color:var(--on-accent)">Fertig</button><button data-delt style="margin-left:auto">🗑 Löschen</button></div></div>`;
 
+  if (calMonth == null) { calMonth = monthIdx(t); calSel = t; }
+  function calHTML() {
+    const first = monthStart(calMonth), last = monthStart(calMonth + 1) - 1;
+    const title = new Date(first * DAY).toLocaleDateString('de-DE', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+    let cells = WD.map(d => `<div class="wd">${d}</div>`).join('');
+    for (let i = 0; i < wd(first); i++) cells += '<span class="pad"></span>';
+    for (let n = first; n <= last; n++) {
+      const e = calEntries(n);
+      const cols = [...e.events.map(x => x.color), ...e.todos.filter(x => !x.done).flatMap(todoColors)].slice(0, 4);
+      cells += `<button data-day="${n}" class="${n === t ? 'today' : ''} ${n === calSel ? 'sel' : ''} ${n < t ? 'past' : ''}">
+        <span class="n">${new Date(n * DAY).getUTCDate()}</span><span class="dots">${cols.map(c => `<i style="background:var(--${c})"></i>`).join('')}</span></button>`;
+    }
+    const e = calEntries(calSel);
+    const dayTitle = calSel === t ? 'Heute' : calSel === t + 1 ? 'Morgen' : WDL[wd(calSel)];
+    return `<div class="calhead"><button id="prevm" aria-label="Voriger Monat">‹</button><b>${title}</b>
+        <button id="todaym">Heute</button><button id="nextm" aria-label="Nächster Monat">›</button></div>
+      <div class="mcal">${cells}</div>
+      <div class="section">${dayTitle}, ${new Date(calSel * DAY).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', timeZone: 'UTC' })}</div>
+      <div class="todos">${e.events.map(x => `<div class="todo ev" style="--ec:var(--${x.color})"><div class="evi">${x.it.emoji}</div>
+          <div class="tx"><div class="tt">${x.it.time ? `<span class="time">${esc(x.it.time)}</span>` : ''}${esc(x.it.title)}</div>
+          <div class="meta">${esc(x.who)}${x.it.sub ? ' · ' + esc(x.it.sub) : ''}</div></div></div>`).join('')}
+        ${e.todos.map(row).join('')}</div>
+      ${!e.events.length && !e.todos.length ? '<div class="note">Nichts eingetragen. Oben eine Aufgabe für diesen Tag anlegen.</div>' : ''}
+      <p class="muted" style="font-size:13px">Prototyp: zeigt Aufgaben mit Datum, die Hobbys der Kinder und eure Routinen. In der echten Version kommt der Familienkalender (iCloud) dazu.</p>`;
+  }
+
   view.innerHTML = `
     <div class="top" style="--c:var(--${a.color})">
       <button class="av" id="home" aria-label="Zurück">${a.emoji}</button>
@@ -572,20 +638,21 @@ function renderAdult(a) {
       return `<div class="prog" style="--c:var(--${k.color})"><b>${k.emoji} ${esc(k.name)}</b><div class="bar"><i style="width:${p.total ? p.done / p.total * 100 : 100}%"></i></div><span>${p.done}/${p.total}</span></div>`;
     }).join('')}</div>
 
-    <form class="qa" id="qa"><input id="qat" placeholder="Neue Aufgabe${fa ? ' für ' + esc(fa.name) : ''}…" autocomplete="off"><button aria-label="Hinzufügen">+</button></form>
-    <div class="chips" style="margin-top:8px">${dueOptions().slice(0, 3).map(([v, l]) => `<button data-adue="${v}" aria-pressed="${addDue === v}">${l}</button>`).join('')}
-      <span style="width:10px"></span>
+    <div style="margin-bottom:12px"><div class="seg2"><button data-mode="list" aria-pressed="${adultMode === 'list'}">Liste</button><button data-mode="cal" aria-pressed="${adultMode === 'cal'}">Kalender</button></div></div>
+    <form class="qa" id="qa"><input id="qat" placeholder="Neue Aufgabe${fa ? ' für ' + esc(fa.name) : ''}${adultMode === 'cal' ? ' am ' + new Date(calSel * DAY).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric', timeZone: 'UTC' }) : ''}…" autocomplete="off"><button aria-label="Hinzufügen">+</button></form>
+    <div class="chips" style="margin-top:8px">${adultMode === 'cal' ? '' : dueOptions().slice(0, 3).map(([v, l]) => `<button data-adue="${v}" aria-pressed="${addDue === v}">${l}</button>`).join('') + '<span style="width:10px"></span>'}
       <button data-awho="me" aria-pressed="${addWho === 'me'}">Für mich</button>
       ${other ? `<button data-awho="${other.id}" aria-pressed="${addWho === other.id}">Für ${esc(other.name)}</button>` : ''}
       <button data-awho="parents" aria-pressed="${addWho === 'parents'}">Für uns beide</button></div>
     ${fa ? `<div class="filterbar">${fa.emoji} ${esc(fa.name)}<button id="clearf">Alle zeigen</button></div>` : ''}
 
+    ${adultMode === 'cal' ? calHTML() : `
     ${routine.length ? `<div class="section">Routine heute</div><div class="todos">${routine.map(it => `
       <div class="todo ${isDone(a, it, t) ? 'done' : ''}"><button class="cb" data-rt="${it.id}">${CHECK}</button>
         <div class="tx"><div class="tt">${it.emoji} ${esc(it.title)}</div>${it.sub ? `<div class="meta">${esc(it.sub)}</div>` : ''}</div></div>`).join('')}</div>` : ''}
     ${groups.filter(([, xs]) => xs.length).map(([title, xs]) => `<div class="section">${title}</div><div class="todos">${xs.map(row).join('')}</div>`).join('')}
     ${!open.length && !routine.length ? `<div class="note" style="margin-top:14px">Nichts offen${fa ? ' in diesem Bereich' : ''}. 🎉</div>` : ''}
-    ${doneToday.length ? `<div class="section">Heute erledigt</div><div class="todos">${doneToday.map(row).join('')}</div>` : ''}
+    ${doneToday.length ? `<div class="section">Heute erledigt</div><div class="todos">${doneToday.map(row).join('')}</div>` : ''}`}
 
     <div class="section">Bereiche</div>
     <div class="areas">${state.areas.map(r => {
@@ -597,14 +664,22 @@ function renderAdult(a) {
     <p class="muted" style="font-size:13px">Umrandet: Bereiche, für die du zuständig bist. Zuständigkeiten legt ihr unter Einstellungen fest.</p>`;
 
   const $ = id => document.getElementById(id);
-  $('home').onclick = () => { areaFilter = null; editing = null; location.hash = '#/'; };
+  $('home').onclick = () => { areaFilter = null; editing = null; calMonth = null; location.hash = '#/'; };
   $('qa').onsubmit = e => {
     e.preventDefault();
     const title = $('qat').value.trim(); if (!title) return;
-    state.todos.push({ id: uid(), title, who: addWho === 'me' ? a.id : addWho, area: areaFilter, due: addDue || null, done: null });
+    const due = adultMode === 'cal' ? keyN(calSel) : addDue || null;
+    state.todos.push({ id: uid(), title, who: addWho === 'me' ? a.id : addWho, area: areaFilter, due, done: null });
     save(); renderAdult(a); $('qat').focus();
   };
   view.querySelectorAll('[data-adue]').forEach(b => b.onclick = () => { addDue = b.dataset.adue; renderAdult(a); });
+  view.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { adultMode = b.dataset.mode; editing = null; renderAdult(a); });
+  view.querySelectorAll('.mcal [data-day]').forEach(b => b.onclick = () => { calSel = +b.dataset.day; editing = null; renderAdult(a); });
+  if ($('prevm')) {
+    $('prevm').onclick = () => { calMonth--; calSel = monthStart(calMonth); renderAdult(a); };
+    $('nextm').onclick = () => { calMonth++; calSel = monthStart(calMonth); renderAdult(a); };
+    $('todaym').onclick = () => { calMonth = monthIdx(t); calSel = t; renderAdult(a); };
+  }
   view.querySelectorAll('[data-awho]').forEach(b => b.onclick = () => { addWho = b.dataset.awho; renderAdult(a); });
   if ($('clearf')) $('clearf').onclick = () => { areaFilter = null; renderAdult(a); };
   view.querySelectorAll('[data-area]').forEach(b => b.onclick = () => { areaFilter = areaFilter === b.dataset.area ? null : b.dataset.area; renderAdult(a); window.scrollTo(0, 0); });
@@ -659,6 +734,8 @@ function renderParents() {
       <div class="edrow" data-id="${it.id}"><input type="text" class="emo" data-f="emoji" value="${esc(it.emoji)}">
         <div><input type="text" data-f="title" value="${esc(it.title)}">
           <input type="text" data-f="sub" value="${esc(it.sub)}" placeholder="Hinweis (optional)" style="margin-top:6px;font-size:14px">
+          <label class="muted" style="font-size:13px;display:flex;gap:8px;align-items:center;margin-top:6px">Uhrzeit
+            <input type="time" data-f="time" value="${esc(it.time || '')}" style="width:auto;border:0;border-radius:8px;background:var(--card);padding:4px 8px"></label>
           <div class="chips who-chips">${whoOpts.map(([v, l]) => `<button data-who="${v}" aria-pressed="${it.who === v}">${esc(l)}</button>`).join('')}</div>
           <div class="chips">${WD.map((d, i) => `<button data-day="${i}" aria-pressed="${it.days.includes(i)}">${d}</button>`).join('')}
             <button data-del style="margin-left:auto">🗑</button></div></div></div>`).join('')}</div>

@@ -8,7 +8,7 @@ Local prototype: open `index.html` in a browser (add `?tag=2` to preview the day
 - Per-kid tiles for today, progress ring, "tomorrow" hint for hobbies, week strip and streak
 - Tasks per kid, for both, or alternating day by day; weekdays per task
 - Grown-ups: own to-do lists (today / upcoming / someday, for me / partner / both), areas of responsibility
-  with a main contact, kids' progress at a glance
+  with a main contact, kids' progress at a glance, and a family month calendar (dated to-dos, hobbies, routines)
 - Settings: today's progress, task editor, names/avatars/colours, mascot choice
 - Prototype only: data stays on the device. The real version would sit on a small server (PocketBase on pve1)
   so all devices share it, and the mascot's lines would be written nightly by Hermes and approved by a parent.
