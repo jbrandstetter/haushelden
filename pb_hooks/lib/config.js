@@ -10,11 +10,14 @@ const DEFAULTS = {
   HH_BACKUP_RETENTION_DAYS: "14",
 };
 
-// Required in production mode.
+// Required in production mode. A value still starting with "change-me" (from .env.example) counts as not configured.
 const REQUIRED_IN_PRODUCTION = ["HH_PUBLIC_URL", "HH_BACKUP_TARGET", "HH_PB_VERSION"];
 
 // Required when no database exists yet (first-run setup).
 const REQUIRED_ON_FRESH_INSTALL = ["HH_SETUP_TOKEN"];
+
+// Values from .env.example that must never reach production.
+const PLACEHOLDER = "change-me";
 
 function isSet(env, key) {
   const value = env[key];
@@ -50,6 +53,9 @@ function loadConfig(env, options = {}) {
     if (freshInstall) required.push(...REQUIRED_ON_FRESH_INSTALL);
     for (const key of required) {
       if (!isSet(env, key)) throw new Error(`missing configuration: ${key}`);
+      if (env[key].trim().toLowerCase().startsWith(PLACEHOLDER)) {
+        throw new Error(`placeholder configuration: ${key} still has the example value`);
+      }
     }
   }
   return config;

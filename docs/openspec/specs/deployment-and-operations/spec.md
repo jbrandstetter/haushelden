@@ -45,6 +45,7 @@ required keys MUST stop startup with a message naming the key.
 | Key | Required | Meaning |
 |-----|----------|---------|
 | `HH_PUBLIC_URL` | yes | Public base URL behind the reverse proxy (used for invite links and CORS) |
+| `HH_MODE` | no (default `development`) | `development` or `production`; production mode enforces the required keys below and rejects values still starting with `change-me` |
 | `HH_TZ` | no (default `Europe/Berlin`) | Household time zone (SPEC-0001 "Household Day and Time Zone") |
 | `HH_DATA_DIR` | no (default `./pb_data`) | PocketBase data directory |
 | `HH_LISTEN` | no (default `127.0.0.1:8090`) | Address PocketBase listens on |
@@ -52,6 +53,7 @@ required keys MUST stop startup with a message naming the key.
 | `HH_BACKUP_TARGET` | yes in production | Where nightly backups are written (path or URL of the internal backup target) |
 | `HH_BACKUP_RETENTION_DAYS` | no (default `14`) | Number of daily backups kept |
 | `HH_PB_VERSION` | yes in production | Pinned PocketBase version |
+| `HH_DEV_ADMIN_EMAIL`, `HH_DEV_ADMIN_PASSWORD` | development only | Fake local superuser created by the local start script and used by the seed script; ignored in production |
 | `HH_CALDAV_URL`, `HH_CALDAV_USER`, `HH_CALDAV_PASSWORD` | later | Family calendar source (SPEC-0004, later) |
 | `HH_ASSISTANT_TOKEN`, `HH_LLM_ENDPOINT` | later | Household assistant (SPEC-0006, later) |
 
@@ -59,6 +61,11 @@ required keys MUST stop startup with a message naming the key.
 
 - **WHEN** the server starts in production mode without `HH_PUBLIC_URL`
 - **THEN** it exits with "missing configuration: HH_PUBLIC_URL"
+
+#### Scenario: Example value left in place
+
+- **WHEN** the server starts in production mode and a required key still has its `.env.example` placeholder (`change-me…`)
+- **THEN** it exits with "placeholder configuration: {KEY} still has the example value"
 
 #### Scenario: No real values in the repo
 
