@@ -116,7 +116,8 @@ at least 12 characters; passkeys MAY be added later. A parent session MUST remai
 A signed-in parent MUST be able to enroll the current device as a family device (ADR-0003). Enrollment MUST create a
 device account with a random secret of at least 32 bytes generated on the device and never shown to anyone. Parents
 MUST see all enrolled devices with name and last use, and MUST be able to remove any of them; a removed device MUST
-receive an authentication error on its next request.
+be treated as unauthenticated from then on (it can read no household data) and MUST be returned to the sign-in screen the
+next time the app starts or refreshes its session.
 
 #### Scenario: Enrolling the kids' iPad
 

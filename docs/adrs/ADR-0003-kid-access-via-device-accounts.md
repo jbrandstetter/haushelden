@@ -58,7 +58,7 @@ How it works:
 ### Confirmation
 
 SPEC-0001 scenarios "Kid opens their board", "Kid tries the parent view", "Kid cannot manage members" and SPEC-0002
-"Kid cannot edit routines" pass against the real server, and a removed device receives 401 on its next request.
+"Kid cannot edit routines" pass against the real server, and a removed device sees no household data and returns to the sign-in screen on its next launch (PocketBase treats a deleted device's token as a guest, so rule-protected endpoints answer with empty results or 404 rather than 401; only the session refresh fails explicitly).
 
 ## Pros and Cons of the Options
 
