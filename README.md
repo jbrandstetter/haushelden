@@ -3,7 +3,7 @@
 Prototype of the kids' side of a family planner: each child sees today's tasks as big tiles to tick off,
 and a mascot cheers them on (occasionally out loud, in German), with a celebration when everything is done.
 
-Local prototype: open `index.html` in a browser (add `?tag=2` to preview the day after tomorrow).
+Try it: https://jbrandstetter.github.io/haushelden/ or open `index.html` locally (add `?tag=2` to preview the day after tomorrow).
 
 - Per-kid tiles for today, progress ring, "tomorrow" hint for hobbies, week strip and streak
 - Tasks per kid, for both, or alternating day by day; weekdays per task
