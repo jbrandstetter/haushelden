@@ -17,7 +17,7 @@ the same habits and agents can run it.
 - The public hostname is published only after the security checklist passes
 
 ### Non-Goals
-- CI/CD pipelines or container registries (a git tag plus provisioning is enough for one household)
+- Deployment pipelines (CD) or container registries — a git tag plus provisioning is enough for one household. Pull-request checks (lint, format, tests, a PocketBase smoke test) are CI and are in scope.
 - High availability or multiple replicas
 - Kubernetes, Docker, or any orchestration layer
 

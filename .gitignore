@@ -1,2 +1,9 @@
 .sdd/
 .claude/settings.local.json
+.env
+pb_data/
+.pb/
+node_modules/
+pocketbase
+pocketbase.exe
+*.zip

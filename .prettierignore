@@ -1,0 +1,12 @@
+# Prototype stays untouched until v1 replaces it.
+/index.html
+/sw.js
+/manifest.json
+*.png
+# Generated or prose files
+package-lock.json
+*.md
+docs/
+.pb/
+pb_data/
+node_modules/
