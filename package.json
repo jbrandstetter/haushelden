@@ -9,6 +9,7 @@
   "scripts": {
     "start": "node scripts/start.js",
     "seed": "node scripts/seed.js",
+    "smoke": "node scripts/smoke.js",
     "pb:download": "bash scripts/pb-download.sh",
     "test": "node --test \"test/*.test.js\"",
     "lint": "eslint .",
