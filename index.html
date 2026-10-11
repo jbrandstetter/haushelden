@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Haushelden">
+<meta name="theme-color" content="#eff1f5">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Haushelden</title>
+<style>
+/* Catppuccin Latte (day) / Mocha (night) */
+:root {
+  color-scheme: light;
+  --base: #eff1f5; --mantle: #e6e9ef; --crust: #dce0e8; --card: #ffffff;
+  --text: #4c4f69; --subtext: #6c6f85; --overlay: #8c8fa1; --surface0: #ccd0da; --surface1: #bcc0cc;
+  --rosewater: #dc8a78; --flamingo: #dd7878; --pink: #ea76cb; --mauve: #8839ef; --red: #d20f39; --maroon: #e64553; --peach: #fe640b;
+  --yellow: #df8e1d; --green: #40a02b; --teal: #179299; --sky: #04a5e5; --sapphire: #209fb5; --blue: #1e66f5; --lavender: #7287fd;
+  --on-accent: #ffffff; --shadow: 0 2px 0 rgba(76,79,105,0.10), 0 6px 18px rgba(76,79,105,0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --base: #1e1e2e; --mantle: #181825; --crust: #11111b; --card: #262637;
+    --text: #cdd6f4; --subtext: #a6adc8; --overlay: #7f849c; --surface0: #313244; --surface1: #45475a;
+    --rosewater: #f5e0dc; --flamingo: #f2cdcd; --pink: #f5c2e7; --mauve: #cba6f7; --red: #f38ba8; --maroon: #eba0ac; --peach: #fab387;
+    --yellow: #f9e2af; --green: #a6e3a1; --teal: #94e2d5; --sky: #89dceb; --sapphire: #74c7ec; --blue: #89b4fa; --lavender: #b4befe;
+    --on-accent: #11111b; --shadow: 0 2px 0 rgba(0,0,0,0.3);
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; }
+body {
+  background: var(--base); color: var(--text); min-height: 100vh;
+  font: 17px/1.4 ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Nunito", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none;
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+input { user-select: text; -webkit-user-select: text; }
+.hidden { display: none !important; }
+main { max-width: 900px; margin: 0 auto; padding: max(18px, env(safe-area-inset-top)) 16px 60px; }
+.muted { color: var(--overlay); }
+.btn { border: 0; border-radius: 14px; padding: 12px 18px; background: var(--card); box-shadow: var(--shadow); font-weight: 650; }
+.btn.primary { background: var(--mauve); color: var(--on-accent); }
+.link { background: none; border: 0; color: var(--overlay); padding: 10px; font-size: 15px; }
+
+/* who are you */
+.who h1 { text-align: center; font-size: 30px; margin: 30px 0 6px; }
+.who p { text-align: center; color: var(--subtext); margin: 0 0 26px; }
+.profiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; max-width: 620px; margin: 0 auto; }
+.profile { border: 0; border-radius: 28px; background: var(--card); box-shadow: var(--shadow); padding: 26px 16px 20px; text-align: center; --c: var(--mauve); }
+.profile .av { width: 110px; height: 110px; border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center;
+  font-size: 62px; background: color-mix(in srgb, var(--c) 22%, transparent); }
+.profile .nm { font-size: 24px; font-weight: 800; }
+.profile .pr { color: var(--subtext); font-size: 15px; margin-top: 4px; }
+.profile:active { transform: scale(0.97); }
+
+/* kid view */
+.top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.top .av { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px;
+  background: color-mix(in srgb, var(--c) 22%, transparent); flex: none; border: 0; }
+.top .hello { flex: 1; min-width: 0; }
+.top .hello b { display: block; font-size: 24px; line-height: 1.15; }
+.top .hello span { color: var(--subtext); font-size: 15px; }
+.ring { width: 64px; height: 64px; flex: none; position: relative; }
+.ring svg { width: 64px; height: 64px; transform: rotate(-90deg); }
+.ring .lbl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; }
+
+.mascot { display: flex; align-items: flex-end; gap: 10px; margin: 6px 0 18px; }
+.mascot .pet { font-size: 64px; line-height: 1; flex: none; transition: transform 0.2s; cursor: pointer; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.12)); }
+.mascot .pet.hop { animation: hop 0.6s ease; }
+@keyframes hop { 0%,100% { transform: translateY(0) rotate(0); } 30% { transform: translateY(-18px) rotate(-8deg); } 60% { transform: translateY(0) rotate(6deg); } }
+.bubble { position: relative; background: var(--card); box-shadow: var(--shadow); border-radius: 20px 20px 20px 6px; padding: 12px 16px;
+  font-size: 18px; font-weight: 600; margin-bottom: 18px; min-height: 48px; transition: opacity 0.2s; }
+.bubble small { display: block; color: var(--overlay); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.section { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--overlay); margin: 18px 4px 10px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 12px; }
+.tile { position: relative; border: 0; border-radius: 24px; background: var(--card); box-shadow: var(--shadow); padding: 16px 14px 14px; text-align: left;
+  min-height: 150px; display: flex; flex-direction: column; gap: 6px; --c: var(--mauve); transition: transform 0.12s, background 0.25s; }
+.tile:active { transform: scale(0.96); }
+.tile .em { font-size: 44px; line-height: 1; }
+.tile .tt { font-weight: 800; font-size: 18px; line-height: 1.2; }
+.tile .st { font-size: 14px; color: var(--subtext); }
+.tile .tick { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%;
+  border: 3px solid color-mix(in srgb, var(--c) 45%, transparent); display: flex; align-items: center; justify-content: center; }
+.tile .tick svg { width: 20px; height: 20px; opacity: 0; color: var(--on-accent); }
+.tile.done { background: color-mix(in srgb, var(--c) 18%, var(--card)); }
+.tile.done .tick { background: var(--c); border-color: var(--c); }
+.tile.done .tick svg { opacity: 1; }
+.tile.done .tt { text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: color-mix(in srgb, var(--c) 70%, transparent); }
+.tile.pop { animation: pop 0.35s ease; }
+@keyframes pop { 50% { transform: scale(1.06); } }
+.tag { display: inline-block; font-size: 12px; font-weight: 800; border-radius: 999px; padding: 2px 9px; background: color-mix(in srgb, var(--c) 20%, transparent); color: var(--text); align-self: flex-start; }
+
+.week { display: flex; gap: 8px; justify-content: space-between; background: var(--card); box-shadow: var(--shadow); border-radius: 20px; padding: 12px 14px; }
+.week .d { text-align: center; flex: 1; font-size: 13px; color: var(--subtext); font-weight: 700; }
+.week .dot { width: 30px; height: 30px; border-radius: 50%; margin: 4px auto 0; background: var(--surface0); display: flex; align-items: center; justify-content: center; font-size: 15px; }
+.week .dot.full { background: var(--c); color: var(--on-accent); }
+.week .dot.part { background: color-mix(in srgb, var(--c) 35%, var(--surface0)); }
+.week .dot.none { background: transparent; border: 2px dashed var(--surface1); }
+.week .today .dot { outline: 3px solid var(--text); outline-offset: 2px; }
+.streak { text-align: center; margin-top: 10px; color: var(--subtext); font-weight: 700; }
+
+.alldone { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--base) 75%, transparent);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.alldone .box { background: var(--card); border-radius: 30px; box-shadow: var(--shadow); padding: 28px 24px; text-align: center; max-width: 380px; margin: 16px; animation: pop 0.4s ease; }
+.alldone .pet { font-size: 90px; animation: hop 0.8s ease 2; }
+.alldone h2 { margin: 8px 0 6px; font-size: 28px; }
+.alldone p { font-size: 18px; color: var(--subtext); margin: 0 0 18px; }
+canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+
+/* parents */
+.ph h1 { font-size: 24px; margin: 6px 0 4px; }
+.panel { background: var(--card); box-shadow: var(--shadow); border-radius: 20px; padding: 16px; margin-bottom: 14px; }
+.panel h3 { margin: 0 0 10px; font-size: 17px; }
+.prog { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.prog .bar { flex: 1; height: 10px; border-radius: 5px; background: var(--surface0); overflow: hidden; }
+.prog .bar i { display: block; height: 100%; background: var(--c); border-radius: 5px; }
+.mini { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.mini span { font-size: 14px; border-radius: 10px; padding: 4px 9px; background: var(--mantle); }
+.mini span.ok { background: color-mix(in srgb, var(--c) 25%, var(--mantle)); }
+.ed { display: grid; gap: 8px; }
+.edrow { display: grid; grid-template-columns: 52px 1fr; gap: 8px; align-items: start; background: var(--mantle); border-radius: 14px; padding: 10px; }
+.edrow input[type=text] { width: 100%; border: 0; border-radius: 10px; background: var(--card); padding: 8px 10px; font-size: 16px; }
+.edrow .emo { width: 52px; text-align: center; font-size: 24px; padding: 6px 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.chips button { border: 0; border-radius: 9px; padding: 5px 9px; font-size: 13px; font-weight: 700; background: var(--card); }
+.chips button[aria-pressed="true"] { background: var(--c, var(--mauve)); color: var(--on-accent); }
+.who-chips button[aria-pressed="true"] { background: var(--mauve); }
+.lines { max-height: 260px; overflow: auto; font-size: 15px; }
+.lines div { padding: 6px 0; border-bottom: 1px solid var(--surface0); }
+.kidset { display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+.kidset input { border: 0; border-radius: 10px; background: var(--mantle); padding: 9px 10px; font-size: 16px; width: 100%; }
+.kidset .emo { text-align: center; font-size: 26px; }
+.swatches { display: flex; gap: 6px; flex-wrap: wrap; grid-column: 2; }
+.swatches button { width: 26px; height: 26px; border-radius: 50%; border: 0; }
+.swatches button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--text); }
+.pets { display: flex; gap: 8px; flex-wrap: wrap; }
+.pets button { border: 0; background: var(--mantle); border-radius: 14px; width: 54px; height: 54px; font-size: 30px; }
+.pets button[aria-pressed="true"] { box-shadow: inset 0 0 0 3px var(--mauve); }
+.note { font-size: 14px; color: var(--subtext); background: var(--mantle); border-radius: 12px; padding: 10px 12px; }
+</style>
+</head>
+<body>
+<main id="view"></main>
+<canvas id="confetti"></canvas>
+<script>
+'use strict';
+// ================================================================ dates
+const DAY = 86400000;
+// ?tag=2 shifts "today" by two days, to preview another weekday
+const OFFSET = parseInt(new URLSearchParams(location.search).get('tag'), 10) || 0;
+const todayN = () => { const d = new Date(); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / DAY + OFFSET; };
+const keyN = n => new Date(n * DAY).toISOString().slice(0, 10);
+const wd = n => (new Date(n * DAY).getUTCDay() + 6) % 7;     // Montag = 0
+const WD = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+const WDL = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+
+// ================================================================ state
+const COLORS = ['peach', 'mauve', 'blue', 'green', 'teal', 'pink', 'yellow', 'red', 'sky', 'lavender'];
+const AVATARS = ['🦁', '🦊', '🐯', '🐼', '🦄', '🐸', '🐨', '🐙', '🦖', '🐬', '🦋', '⚽', '🐴', '🎹'];
+const PETS = [['🐱', 'Mochi'], ['🦊', 'Fuchsi'], ['🐉', 'Drako'], ['🐼', 'Panda'], ['🦉', 'Eule Ole'], ['🐶', 'Bello'], ['🐧', 'Pingu'], ['🤖', 'Robo']];
+const DEFAULT = () => ({
+  setup: false,
+  kids: [
+    { id: 'a', name: '', emoji: '⚽', color: 'peach' },
+    { id: 'b', name: '', emoji: '🐴', color: 'mauve' },
+  ],
+  pet: { emoji: '🐱', name: 'Mochi' },
+  sound: true,
+  // who: kid id, 'both', or 'rotate' (alternates between the kids day by day)
+  items: [
+    { id: 'bag', who: 'both', emoji: '🎒', title: 'Schultasche für morgen packen', sub: 'Stundenplan checken!', days: [0, 1, 2, 3, 6], kind: 'bag' },
+    { id: 'hw', who: 'both', emoji: '📝', title: 'Hausaufgaben', sub: '', days: [0, 1, 2, 3, 4], kind: 'homework' },
+    { id: 'box', who: 'both', emoji: '🥪', title: 'Brotdose in die Spülmaschine', sub: '', days: [0, 1, 2, 3, 4], kind: 'dishes' },
+    { id: 'dw', who: 'rotate', emoji: '🍽️', title: 'Spülmaschine aus- & einräumen', sub: 'Heute bist du dran', days: [0, 1, 2, 3, 4, 5, 6], kind: 'dishes' },
+    { id: 'soc', who: 'a', emoji: '⚽', title: 'Fußballtraining', sub: 'Trikot, Schienbeinschoner, Wasser', days: [1, 3], kind: 'hobby' },
+    { id: 'pia', who: 'b', emoji: '🎹', title: 'Klavierstunde', sub: 'Noten einpacken', days: [1], kind: 'hobby' },
+    { id: 'rid', who: 'b', emoji: '🐴', title: 'Reiten', sub: 'Reithelm & Stiefel', days: [3], kind: 'hobby' },
+  ],
+  done: {},   // 'YYYY-MM-DD' -> { 'itemId:kidId': true }
+});
+const KEY = 'haushelden.v1';
+let state = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || DEFAULT(); } catch { return DEFAULT(); } })();
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
+const kid = id => state.kids.find(k => k.id === id);
+
+// what does this kid have on day n?
+function itemsFor(k, n) {
+  return state.items.filter(it => {
+    if (!it.days.includes(wd(n))) return false;
+    if (it.who === 'both') return true;
+    if (it.who === 'rotate') return state.kids[n % state.kids.length].id === k.id;
+    return it.who === k.id;
+  });
+}
+const isDone = (k, it, n) => !!(state.done[keyN(n)] || {})[it.id + ':' + k.id];
+function setDone(k, it, n, v) {
+  const d = state.done[keyN(n)] = state.done[keyN(n)] || {};
+  if (v) d[it.id + ':' + k.id] = true; else delete d[it.id + ':' + k.id];
+  save();
+}
+function dayProgress(k, n) {
+  const its = itemsFor(k, n);
+  return { total: its.length, done: its.filter(it => isDone(k, it, n)).length };
+}
+function streak(k) {
+  // consecutive days with everything done; today counts once it's complete; days without tasks are skipped
+  let n = todayN(), s = 0;
+  const p = dayProgress(k, n);
+  if (p.total && p.done === p.total) s++;
+  for (let i = 1; i < 60; i++) {
+    const q = dayProgress(k, n - i);
+    if (!q.total) continue;
+    if (q.done < q.total) break;
+    s++;
+  }
+  return s;
+}
+
+// ================================================================ mascot lines
+// Prototype: a fixed pool. In the real app Hermes writes tomorrow's lines each evening (knowing the plan,
+// weather, birthdays…) and a parent approves them before the kids see them.
+const LINES = {
+  greetMorning: ['Guten Morgen, {name}! Heute schaffen wir das.', 'Morgen, {name}! Ich bin schon wach. Du auch?'],
+  greetDay: ['Hallo {name}! Schön, dass du da bist.', 'Hey {name}! Schauen wir mal, was heute ansteht.'],
+  greetEvening: ['Guten Abend, {name}! Nur noch ein paar Sachen.', 'Hallo {name}! Der Abend gehört gleich dir.'],
+  tick: ['Abgehakt!', 'Zack, erledigt!', 'Super!', 'Weiter so!', 'Stark!', 'Läuft bei dir!', 'Eins weniger!', 'Yes!'],
+  bag: ['Tasche gepackt – morgen früh hast du keinen Stress.', 'Gepackt! Dein Morgen-Ich sagt danke.', 'Stundenplan gecheckt? Profi!'],
+  homework: ['Hausaufgaben erledigt! Jetzt ist der Kopf frei.', 'Das war die schwerste Aufgabe – und du hast sie geschafft.', 'Hausaufgaben: check. Respekt!'],
+  dishes: ['Die Küche sagt danke!', 'Spülmaschine? Erledigt. Mama und Papa freuen sich.', 'Ordnung muss sein – und du hast sie gemacht.'],
+  hobby: ['Viel Spaß heute! Gib alles.', 'Ich drück dir die Daumen!', 'Hast du alles eingepackt? Dann los!'],
+  half: ['Schon die Hälfte geschafft!', 'Halbzeit! Der Rest geht auch noch.'],
+  last: ['Nur noch eins, {name}!', 'Eine Sache noch – dann bist du fertig.'],
+  allDone: ['Alles geschafft, {name}! Du bist ein echter Haushelden-Profi.', 'Fertig für heute! Jetzt ist Freizeit.', 'Alles erledigt! Ich mache einen Freudentanz.'],
+  streak: ['{streak} Tage am Stück alles geschafft. Wahnsinn!', 'Das ist schon dein {streak}. Tag in Folge. Weiter so!'],
+  idle: ['Tipp auf eine Karte, wenn du etwas erledigt hast.', 'Na, was machst du als Nächstes?'],
+  free: ['Heute steht nichts an. Genieß den Tag, {name}!'],
+};
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const fill = (s, k) => s.replace(/\{name\}/g, k.name).replace(/\{streak\}/g, streak(k));
+function greeting(k) {
+  const h = new Date().getHours();
+  return fill(pick(h < 11 ? LINES.greetMorning : h < 17 ? LINES.greetDay : LINES.greetEvening), k);
+}
+
+let deVoice = null;
+function pickVoice() {
+  const vs = speechSynthesis.getVoices().filter(v => /^de/i.test(v.lang));
+  deVoice = vs.find(v => /anna|helena|markus|enhanced|premium/i.test(v.name)) || vs[0] || null;
+}
+if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function say(text) {
+  if (!state.sound || !('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/[–—]/g, ','));
+  u.lang = 'de-DE'; if (deVoice) u.voice = deVoice; u.rate = 1.0; u.pitch = 1.25;
+  speechSynthesis.speak(u);
+}
+
+// ================================================================ confetti
+const cv = document.getElementById('confetti'), cx = cv.getContext('2d');
+let parts = [], raf = null;
+function confetti(x, y, n = 40, spread = 1) {
+  cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio;
+  const cs = getComputedStyle(document.documentElement);
+  const cols = ['peach', 'mauve', 'blue', 'green', 'yellow', 'pink', 'teal'].map(c => cs.getPropertyValue('--' + c).trim());
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, v = (3 + Math.random() * 6) * spread;
+    parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 5 * spread, r: 4 + Math.random() * 5, c: pick(cols), life: 60 + Math.random() * 40, rot: Math.random() * 6 });
+  }
+  if (!raf) raf = requestAnimationFrame(stepConfetti);
+}
+function stepConfetti() {
+  const d = devicePixelRatio;
+  cx.clearRect(0, 0, cv.width, cv.height);
+  parts = parts.filter(p => p.life > 0);
+  for (const p of parts) {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.35; p.vx *= 0.99; p.life--; p.rot += 0.2;
+    cx.save(); cx.translate(p.x * d, p.y * d); cx.rotate(p.rot); cx.fillStyle = p.c; cx.globalAlpha = Math.min(1, p.life / 30);
+    cx.fillRect(-p.r * d / 2, -p.r * d / 4, p.r * d, p.r * d / 2); cx.restore();
+  }
+  raf = parts.length ? requestAnimationFrame(stepConfetti) : (cx.clearRect(0, 0, cv.width, cv.height), null);
+}
+
+// ================================================================ views
+const view = document.getElementById('view');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const route = () => location.hash.replace(/^#\/?/, '').split('/');
+window.addEventListener('hashchange', render);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+function render() {
+  const [name, arg] = route();
+  if (!state.setup) return renderSetup();
+  if (name === 'kind' && kid(arg)) return renderKid(kid(arg));
+  if (name === 'eltern') return renderParents();
+  return renderWho();
+}
+
+// ---------------------------------------------------------------- first launch
+function renderSetup() {
+  view.innerHTML = `<div class="ph" style="max-width:520px;margin:0 auto">
+    <h1>Willkommen bei Haushelden 👋</h1>
+    <p class="muted">Einmal kurz einrichten (für Eltern). Alles lässt sich später unter „Eltern“ ändern.</p>
+    <div class="panel"><h3>Wie heißen die Kinder?</h3>
+      ${state.kids.map((k, i) => `<div class="kidset"><div class="emo">${k.emoji}</div>
+        <input type="text" data-i="${i}" placeholder="${i === 0 ? 'Sohn' : 'Tochter'}" value="${esc(k.name)}"></div>`).join('')}
+      <p class="note">Die Beispielaufgaben sind schon eingetragen: ⚽ Fußball für das erste Kind, 🎹 Klavier und 🐴 Reiten für das zweite.</p>
+    </div>
+    <button class="btn primary" id="go">Los geht's</button></div>`;
+  document.getElementById('go').onclick = () => {
+    view.querySelectorAll('input[data-i]').forEach(inp => { state.kids[+inp.dataset.i].name = inp.value.trim() || (inp.dataset.i === '0' ? 'Sohn' : 'Tochter'); });
+    state.setup = true; save(); location.hash = '#/'; render();
+  };
+}
+
+// ---------------------------------------------------------------- who are you?
+function renderWho() {
+  const t = todayN();
+  view.innerHTML = `<div class="who">
+    <h1>Wer bist du?</h1><p>${WDL[wd(t)]}, ${new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long' })}</p>
+    <div class="profiles">${state.kids.map(k => {
+      const p = dayProgress(k, t);
+      return `<button class="profile" data-k="${k.id}" style="--c:var(--${k.color})"><div class="av">${k.emoji}</div>
+        <div class="nm">${esc(k.name)}</div><div class="pr">${p.total ? (p.done === p.total ? 'Alles erledigt ✓' : `${p.done} von ${p.total} erledigt`) : 'Heute frei'}</div></button>`;
+    }).join('')}</div>
+    <div style="text-align:center;margin-top:30px"><button class="link" id="parents">Eltern</button></div></div>`;
+  view.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { location.hash = '#/kind/' + b.dataset.k; });
+  document.getElementById('parents').onclick = () => { location.hash = '#/eltern'; };
+}
+
+// ---------------------------------------------------------------- kid
+let lastKidShown = null;
+function renderKid(k) {
+  const t = todayN(), its = itemsFor(k, t), p = dayProgress(k, t);
+  const r = 26, C = 2 * Math.PI * r, frac = p.total ? p.done / p.total : 1;
+  document.documentElement.style.setProperty('--c', `var(--${k.color})`);
+  const first = lastKidShown !== k.id; lastKidShown = k.id;
+  const tomorrow = itemsFor(k, t + 1).filter(it => it.kind === 'hobby');
+  view.innerHTML = `
+    <div class="top" style="--c:var(--${k.color})">
+      <button class="av" id="home" aria-label="Zurück">${k.emoji}</button>
+      <div class="hello"><b>${esc(k.name)}</b><span>${WDL[wd(t)]}</span></div>
+      <div class="ring"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="${r}" fill="none" stroke="var(--surface0)" stroke-width="8"/>
+        <circle cx="32" cy="32" r="${r}" fill="none" stroke="var(--${k.color})" stroke-width="8" stroke-linecap="round"
+          stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - frac)}" style="transition:stroke-dashoffset .4s"/></svg>
+        <div class="lbl">${p.done}/${p.total}</div></div>
+    </div>
+    <div class="mascot"><div class="pet" id="pet">${state.pet.emoji}</div>
+      <div class="bubble" id="bubble"><small>${esc(state.pet.name)}</small><span id="line"></span></div></div>
+    <div class="section">Heute</div>
+    <div class="tiles">${its.length ? its.map(it => {
+      const done = isDone(k, it, t);
+      const tag = it.who === 'rotate' ? '<span class="tag">Heute du</span>' : it.kind === 'hobby' ? '<span class="tag">Hobby</span>' : '';
+      return `<button class="tile ${done ? 'done' : ''}" data-it="${it.id}" style="--c:var(--${k.color})">
+        <div class="tick">${CHECK}</div><div class="em">${it.emoji}</div><div class="tt">${esc(it.title)}</div>
+        ${it.sub && it.who !== 'rotate' ? `<div class="st">${esc(it.sub)}</div>` : ''}${tag}</button>`;
+    }).join('') : '<div class="note">Heute steht nichts an. 🎉</div>'}</div>
+    ${tomorrow.length ? `<div class="section">Morgen</div><div class="note">${tomorrow.map(it => `${it.emoji} ${esc(it.title)}${it.sub ? ' – ' + esc(it.sub) : ''}`).join('<br>')}</div>` : ''}
+    <div class="section">Diese Woche</div>
+    ${weekHTML(k)}
+    <div class="streak">${streak(k) > 1 ? `🔥 ${streak(k)} Tage am Stück alles geschafft` : ''}</div>
+    <div style="text-align:center;margin-top:18px"><button class="link" id="snd">${state.sound ? '🔊 Ton an' : '🔇 Ton aus'}</button></div>`;
+
+  const line = document.getElementById('line');
+  line.textContent = first ? greeting(k) : (p.total && p.done === p.total ? fill(pick(LINES.allDone), k) : !its.length ? fill(pick(LINES.free), k) : fill(pick(LINES.idle), k));
+  if (first) say(line.textContent);
+  document.getElementById('home').onclick = () => { lastKidShown = null; location.hash = '#/'; };
+  document.getElementById('snd').onclick = () => { state.sound = !state.sound; save(); renderKid(k); };
+  document.getElementById('pet').onclick = e => { e.target.classList.remove('hop'); void e.target.offsetWidth; e.target.classList.add('hop'); speakLine(k, fill(pick([...LINES.tick, ...LINES.idle]), k), true); };
+  view.querySelectorAll('[data-it]').forEach(b => b.onclick = () => tap(k, state.items.find(i => i.id === b.dataset.it), b));
+}
+
+function weekHTML(k) {
+  const t = todayN(), mon = t - wd(t);
+  return `<div class="week">${WD.map((d, i) => {
+    const n = mon + i, p = dayProgress(k, n);
+    const cls = !p.total ? 'none' : p.done === p.total ? 'full' : p.done ? 'part' : '';
+    return `<div class="d ${n === t ? 'today' : ''}">${d}<div class="dot ${n > t && p.total ? '' : cls}">${p.total && p.done === p.total ? '★' : ''}</div></div>`;
+  }).join('')}</div>`;
+}
+
+function speakLine(k, text, voice) {
+  const line = document.getElementById('line');
+  if (line) line.textContent = text;
+  if (voice) say(text);
+}
+
+let tapsSinceVoice = 0;
+function tap(k, it, el) {
+  const t = todayN(), was = isDone(k, it, t);
+  setDone(k, it, t, !was);
+  if (was) { renderKid(k); return; }   // un-ticking: no fuss
+  const rect = el.getBoundingClientRect();
+  confetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 28, 0.8);
+  const p = dayProgress(k, t);
+  renderKid(k);
+  const tile = view.querySelector(`[data-it="${it.id}"]`); if (tile) tile.classList.add('pop');
+  const pet = document.getElementById('pet'); pet.classList.add('hop');
+  if (p.done === p.total) {
+    setTimeout(() => celebrate(k), 450);
+    return;
+  }
+  // talk now and then, not on every tap: always on the first tick of the day, otherwise ~1 in 3
+  tapsSinceVoice++;
+  const remaining = p.total - p.done;
+  let text, voice = false;
+  if (p.done === 1 || tapsSinceVoice >= 3 || Math.random() < 0.25) {
+    text = remaining === 1 ? fill(pick(LINES.last), k)
+      : p.done * 2 === p.total ? pick(LINES.half)
+      : pick(LINES[it.kind] || LINES.tick);
+    voice = true; tapsSinceVoice = 0;
+  } else text = pick(LINES.tick);
+  speakLine(k, fill(text, k), voice);
+}
+
+function celebrate(k) {
+  confetti(innerWidth / 2, innerHeight / 3, 140, 1.4);
+  const s = streak(k);
+  const text = s > 1 && Math.random() < 0.6 ? fill(pick(LINES.streak), k) : fill(pick(LINES.allDone), k);
+  const ov = document.createElement('div'); ov.className = 'alldone';
+  ov.innerHTML = `<div class="box"><div class="pet">${state.pet.emoji}</div><h2>Alles geschafft!</h2><p>${esc(text)}</p>
+    <button class="btn primary" style="background:var(--${k.color})">Juhu!</button></div>`;
+  document.body.appendChild(ov);
+  say(text);
+  ov.onclick = () => { ov.remove(); renderKid(k); };
+}
+
+// ---------------------------------------------------------------- parents
+function renderParents() {
+  document.documentElement.style.removeProperty('--c');
+  const t = todayN();
+  const whoOpts = [...state.kids.map(k => [k.id, k.name]), ['both', 'Beide'], ['rotate', 'Abwechselnd']];
+  view.innerHTML = `<div class="ph">
+    <div class="row" style="display:flex;align-items:center;gap:8px"><button class="btn" id="back">‹ Zurück</button><h1 style="margin-left:6px">Eltern</h1></div>
+    <p class="muted">Prototyp: Daten bleiben auf diesem Gerät. In der echten Version liegt alles auf dem Server und alle Geräte sehen dasselbe.</p>
+
+    <div class="panel"><h3>Heute</h3>${state.kids.map(k => {
+      const p = dayProgress(k, t), its = itemsFor(k, t);
+      return `<div style="--c:var(--${k.color});margin-bottom:10px"><div class="prog"><b style="width:110px">${k.emoji} ${esc(k.name)}</b>
+        <div class="bar"><i style="width:${p.total ? p.done / p.total * 100 : 100}%"></i></div><span>${p.done}/${p.total}</span></div>
+        <div class="mini">${its.map(it => `<span class="${isDone(k, it, t) ? 'ok' : ''}">${isDone(k, it, t) ? '✓' : '○'} ${it.emoji} ${esc(it.title)}</span>`).join('')}</div></div>`;
+    }).join('')}</div>
+
+    <div class="panel"><h3>Aufgaben</h3><div class="ed" id="ed">${state.items.map(it => `
+      <div class="edrow" data-id="${it.id}"><input type="text" class="emo" data-f="emoji" value="${esc(it.emoji)}">
+        <div><input type="text" data-f="title" value="${esc(it.title)}">
+          <input type="text" data-f="sub" value="${esc(it.sub)}" placeholder="Hinweis (optional)" style="margin-top:6px;font-size:14px">
+          <div class="chips who-chips">${whoOpts.map(([v, l]) => `<button data-who="${v}" aria-pressed="${it.who === v}">${esc(l)}</button>`).join('')}</div>
+          <div class="chips">${WD.map((d, i) => `<button data-day="${i}" aria-pressed="${it.days.includes(i)}">${d}</button>`).join('')}
+            <button data-del style="margin-left:auto">🗑</button></div></div></div>`).join('')}</div>
+      <div style="margin-top:10px"><button class="btn" id="add">+ Aufgabe</button></div></div>
+
+    <div class="panel"><h3>Kinder</h3>${state.kids.map((k, i) => `
+      <div class="kidset"><div class="emo">${k.emoji}</div><input type="text" data-kname="${i}" value="${esc(k.name)}">
+        <div class="swatches">${COLORS.map(c => `<button data-kc="${i}:${c}" aria-pressed="${k.color === c}" style="background:var(--${c})"></button>`).join('')}</div>
+        <div class="pets" style="grid-column:2">${AVATARS.map(a => `<button data-ka="${i}:${a}" aria-pressed="${k.emoji === a}" style="width:42px;height:42px;font-size:22px">${a}</button>`).join('')}</div></div>`).join('')}
+    </div>
+
+    <div class="panel"><h3>Maskottchen</h3>
+      <div class="pets">${PETS.map(([e, n]) => `<button data-pet="${e}" data-pn="${n}" aria-pressed="${state.pet.emoji === e}" title="${n}">${e}</button>`).join('')}</div>
+      <div class="kidset" style="margin-top:10px"><div class="emo">${state.pet.emoji}</div><input type="text" id="petname" value="${esc(state.pet.name)}"></div>
+      <p class="note">Lasst die Kinder Tier und Namen aussuchen. In der echten Version schreibt Hermes jeden Abend die Sprüche für morgen
+        (passend zu Plan, Wetter, Geburtstagen) und ihr gebt sie hier frei, bevor die Kinder sie sehen. Bis dahin: feste Sprüche.</p>
+      <div class="lines">${Object.values(LINES).flat().map(l => `<div>${esc(l)}</div>`).join('')}</div>
+    </div>
+
+    <div class="panel"><h3>Prototyp</h3><div class="row" style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" id="resetday">Heute zurücksetzen</button><button class="btn" id="resetall">Alles zurücksetzen</button></div></div>
+  </div>`;
+  const $ = s => document.getElementById(s);
+  $('back').onclick = () => { location.hash = '#/'; };
+  const itemOf = el => state.items.find(i => i.id === el.closest('.edrow').dataset.id);
+  view.querySelectorAll('.edrow input').forEach(inp => inp.oninput = () => { itemOf(inp)[inp.dataset.f] = inp.value; save(); });
+  view.querySelectorAll('[data-who]').forEach(b => b.onclick = () => { itemOf(b).who = b.dataset.who; save(); renderParents(); });
+  view.querySelectorAll('[data-day]').forEach(b => b.onclick = () => {
+    const it = itemOf(b), d = +b.dataset.day;
+    it.days = it.days.includes(d) ? it.days.filter(x => x !== d) : [...it.days, d].sort(); save(); renderParents();
+  });
+  view.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { state.items = state.items.filter(i => i !== itemOf(b)); save(); renderParents(); });
+  $('add').onclick = () => { state.items.push({ id: Math.random().toString(36).slice(2, 8), who: 'both', emoji: '⭐', title: 'Neue Aufgabe', sub: '', days: [0, 1, 2, 3, 4], kind: 'chore' }); save(); renderParents(); };
+  view.querySelectorAll('[data-kname]').forEach(inp => inp.oninput = () => { state.kids[+inp.dataset.kname].name = inp.value; save(); });
+  view.querySelectorAll('[data-kc]').forEach(b => b.onclick = () => { const [i, c] = b.dataset.kc.split(':'); state.kids[+i].color = c; save(); renderParents(); });
+  view.querySelectorAll('[data-ka]').forEach(b => b.onclick = () => { const [i, a] = b.dataset.ka.split(':'); state.kids[+i].emoji = a; save(); renderParents(); });
+  view.querySelectorAll('[data-pet]').forEach(b => b.onclick = () => { state.pet = { emoji: b.dataset.pet, name: b.dataset.pn }; save(); renderParents(); });
+  $('petname').oninput = () => { state.pet.name = $('petname').value; save(); };
+  $('resetday').onclick = () => { delete state.done[keyN(t)]; save(); renderParents(); };
+  let armed = false;
+  $('resetall').onclick = () => {
+    if (!armed) { armed = true; $('resetall').textContent = 'Nochmal tippen zum Löschen'; return; }
+    state = DEFAULT(); save(); location.hash = '#/'; render();
+  };
+}
+
+render();
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
