@@ -68,11 +68,11 @@ stateDiagram-v2
 ```mermaid
 erDiagram
   LIST ||--o{ SHOP_ITEM : contains
-  LIST ||--o{ PURCHASE_HISTORY : learns
+  LIST ||--o{ PURCHASES : learns
   MEMBER |o--o{ SHOP_ITEM : "added by"
   LIST { string id string emoji string name }
   SHOP_ITEM { string id string list string name string by bool auto date bought }
-  PURCHASE_HISTORY { string list string key string name json buys date skipUntil }
+  PURCHASES { string list string key string name json buys string skipUntil }
 ```
 
 Auto-refill runs on the server once a day and whenever a list is opened, so all devices see the same automatic items

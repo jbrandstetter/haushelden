@@ -18,6 +18,8 @@ proposed calendar entries and to-dos, and can propose clean-ups of the shopping 
 proposal that a parent approves, or a mascot line that passes an approval policy, before any family member sees it.
 SPEC-0002, SPEC-0003, SPEC-0004 and SPEC-0005 consume its approved output.
 
+**v1 scope** (SPEC-0001 "Version 1 Scope"): none — this whole spec follows after v1. v1 must work without it.
+
 ## Requirements
 
 ### Requirement: Local Model Only

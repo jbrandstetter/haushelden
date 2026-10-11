@@ -18,6 +18,8 @@ The parents' view has a calendar mode next to the to-do list. It shows the whole
 kids' hobbies, the parents' routines and, in production, the appointments from the family's shared iCloud calendar.
 Selecting a day shows its agenda and lets a parent add a to-do for that day.
 
+**v1 scope** (SPEC-0001 "Version 1 Scope"): everything except "External Family Calendar" (iCloud), which follows later.
+
 ## Requirements
 
 ### Requirement: Mode Switch

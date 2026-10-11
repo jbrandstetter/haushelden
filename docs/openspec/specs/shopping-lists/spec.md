@@ -17,6 +17,8 @@ goods from the dm drugstore). Everyone, kids included, can add items. Ticking an
 from those purchases the app learns how often each item is bought and puts items back on the list when they are due
 again. An LLM MAY improve matching and sorting later (SPEC-0006), but the learning itself is deterministic.
 
+**v1 scope** (SPEC-0001 "Version 1 Scope"): everything in this spec.
+
 ## Requirements
 
 ### Requirement: Lists

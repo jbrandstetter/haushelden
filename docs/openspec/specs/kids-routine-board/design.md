@@ -35,7 +35,8 @@ one model keeps the calendar (SPEC-0004) and the parents' "Routine heute" (SPEC-
 
 ### Alternation by day number parity
 
-**Choice**: For `kids_alternating`, the due kid is `kids[dayNumber mod kidCount]`, with kids in a stable order.
+**Choice**: For `kids_alternating`, the due kid is `kids[dayNumber mod kidCount]`, where `dayNumber` is the number of
+days since 1970-01-01 of the household date and kids are ordered by creation.
 **Rationale**: Needs no stored state and every device agrees offline. Fairness over a week differs by at most one turn.
 **Alternatives considered**:
 - Rotate on completion ("whoever didn't do it last"): fairer when someone skips, but needs shared state and makes the
@@ -43,7 +44,9 @@ one model keeps the calendar (SPEC-0004) and the parents' "Routine heute" (SPEC-
 
 ### Ticks stored per member, item and day
 
-**Choice**: `routine_done { routine, member, day }` with a unique index on the triple; un-tick deletes the row.
+**Choice**: `routine_done { routine, member, day }` with `day` as a household-time `YYYY-MM-DD` string (SPEC-0001
+"Household Day and Time Zone") and a unique index on the triple; un-tick deletes the row. Created by the family
+device account on the kid's behalf (ADR-0003).
 **Rationale**: Idempotent under offline replay (SPEC-0001 Offline Operation), trivial streak and week-strip queries,
 and it survives later edits to the routine's weekdays.
 

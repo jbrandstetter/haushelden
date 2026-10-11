@@ -18,6 +18,8 @@ Each parent gets a personal view: their own to-dos and the ones shared with the 
 responsibility with a main contact each, their recurring chores for today, and a glance at the kids' progress. The
 view has a list mode (this spec) and a calendar mode (SPEC-0004).
 
+**v1 scope** (SPEC-0001 "Version 1 Scope"): everything except "Reminders" and "Proposed To-dos", which follow later.
+
 ## Requirements
 
 ### Requirement: To-dos
