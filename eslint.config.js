@@ -15,6 +15,7 @@ module.exports = [
     languageOptions: {
       globals: {
         onBootstrap: "readonly",
+        routerUse: "readonly",
         routerAdd: "readonly",
         cronAdd: "readonly",
         migrate: "readonly",
@@ -39,7 +40,15 @@ module.exports = [
     },
   },
   {
+    files: ["app/sw.js"],
+    languageOptions: { sourceType: "script", globals: globals.serviceworker },
+  },
+  {
     files: ["app/**/*.js"],
-    languageOptions: { sourceType: "script", globals: globals.browser },
+    // Classic scripts that also load under Node for the unit tests (UMD): module/require exist there.
+    languageOptions: {
+      sourceType: "script",
+      globals: { ...globals.browser, module: "readonly", require: "readonly", HH: "writable" },
+    },
   },
 ];

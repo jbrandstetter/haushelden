@@ -28,6 +28,10 @@ root and keeps being served by GitHub Pages. Specs and decisions are in `docs/`;
 | `pb_hooks/` | server-side hooks and custom routes (`lib/config.js` is the configuration loader) |
 | `scripts/` | start, seed and PocketBase download scripts |
 
+The PWA shell in `app/` (no build step): `js/data.js` is the only data API for features (`list/get/subscribe/create/update/delete`,
+realtime plus IndexedDB mirror plus offline outbox); each feature story adds one line to `js/routes.js`. Household days are
+`YYYY-MM-DD` strings in `HH_TZ` (`js/dates.js`).
+
 Run it locally (Node 22 or newer, macOS arm64/amd64 or Linux amd64, no homelab access needed):
 
 ```sh
