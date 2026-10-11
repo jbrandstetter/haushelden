@@ -1,0 +1,223 @@
+/* Governing: SPEC-0001 REQ "Prototype as UI Reference" (Catppuccin Latte / Mocha tokens and layout primitives
+   ported from the prototype's index.html; the prototype itself stays untouched) */
+
+/* Catppuccin Latte (day) / Mocha (night) */
+:root {
+  color-scheme: light;
+  --base: #eff1f5;
+  --mantle: #e6e9ef;
+  --crust: #dce0e8;
+  --card: #ffffff;
+  --text: #4c4f69;
+  --subtext: #6c6f85;
+  --overlay: #8c8fa1;
+  --surface0: #ccd0da;
+  --surface1: #bcc0cc;
+  --rosewater: #dc8a78;
+  --flamingo: #dd7878;
+  --pink: #ea76cb;
+  --mauve: #8839ef;
+  --red: #d20f39;
+  --maroon: #e64553;
+  --peach: #fe640b;
+  --yellow: #df8e1d;
+  --green: #40a02b;
+  --teal: #179299;
+  --sky: #04a5e5;
+  --sapphire: #209fb5;
+  --blue: #1e66f5;
+  --lavender: #7287fd;
+  --on-accent: #ffffff;
+  --shadow: 0 2px 0 rgba(76, 79, 105, 0.1), 0 6px 18px rgba(76, 79, 105, 0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --base: #1e1e2e;
+    --mantle: #181825;
+    --crust: #11111b;
+    --card: #262637;
+    --text: #cdd6f4;
+    --subtext: #a6adc8;
+    --overlay: #7f849c;
+    --surface0: #313244;
+    --surface1: #45475a;
+    --rosewater: #f5e0dc;
+    --flamingo: #f2cdcd;
+    --pink: #f5c2e7;
+    --mauve: #cba6f7;
+    --red: #f38ba8;
+    --maroon: #eba0ac;
+    --peach: #fab387;
+    --yellow: #f9e2af;
+    --green: #a6e3a1;
+    --teal: #94e2d5;
+    --sky: #89dceb;
+    --sapphire: #74c7ec;
+    --blue: #89b4fa;
+    --lavender: #b4befe;
+    --on-accent: #11111b;
+    --shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* layout primitives */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+  margin: 0;
+}
+body {
+  background: var(--base);
+  color: var(--text);
+  min-height: 100vh;
+  font:
+    17px/1.4 ui-rounded,
+    "SF Pro Rounded",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Nunito",
+    "Segoe UI",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+input {
+  user-select: text;
+  -webkit-user-select: text;
+}
+.hidden {
+  display: none !important;
+}
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: max(18px, env(safe-area-inset-top)) 16px 60px;
+}
+.muted {
+  color: var(--overlay);
+}
+.btn {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 18px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  font-weight: 650;
+}
+.btn.primary {
+  background: var(--mauve);
+  color: var(--on-accent);
+}
+.link {
+  background: none;
+  border: 0;
+  color: var(--overlay);
+  padding: 10px;
+  font-size: 15px;
+}
+.panel {
+  background: var(--card);
+  box-shadow: var(--shadow);
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.panel h3 {
+  margin: 0 0 10px;
+  font-size: 17px;
+}
+.section {
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--overlay);
+  margin: 18px 4px 10px;
+}
+:focus-visible {
+  outline: 3px solid var(--mauve);
+  outline-offset: 2px;
+}
+
+/* shell */
+.skip {
+  position: absolute;
+  left: -999px;
+}
+.skip:focus {
+  left: 8px;
+  top: 8px;
+  z-index: 60;
+  background: var(--card);
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+.shellbar {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: max(8px, env(safe-area-inset-top)) 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.shellbar a {
+  color: var(--subtext);
+  text-decoration: none;
+  font-weight: 700;
+}
+ul.plain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+ul.plain li {
+  border-radius: 12px;
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--c, var(--mauve)) 20%, var(--mantle));
+  font-weight: 650;
+}
+ul.plain li.pending {
+  opacity: 0.7;
+}
+footer.shellfoot {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 16px max(14px, env(safe-area-inset-bottom));
+  min-height: 8px;
+}
+
+/* non-blocking sync hint (SPEC-0001 "Sync write fails") */
+#syncstate {
+  position: fixed;
+  left: 50%;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 45;
+  background: var(--card);
+  color: var(--subtext);
+  box-shadow: var(--shadow);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  pointer-events: none;
+}
+#syncstate.warn {
+  color: var(--on-accent);
+  background: var(--peach);
+}

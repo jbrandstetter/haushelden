@@ -3,27 +3,37 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Haushelden" />
+    <meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icon-180.png" />
+    <link rel="icon" type="image/png" href="icon-192.png" />
     <title>Haushelden</title>
-    <style>
-      body {
-        margin: 0;
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        font-family: system-ui, sans-serif;
-        background: #1e1e2e;
-        color: #cdd6f4;
-        text-align: center;
-      }
-      h1 {
-        margin: 0 0 0.5rem;
-      }
-    </style>
+    <link rel="stylesheet" href="css/app.css" />
   </head>
   <body>
-    <main>
-      <h1>Haushelden</h1>
-      <p>Version 1 ist in Arbeit. Der Prototyp liegt im Hauptverzeichnis des Repositorys.</p>
-    </main>
+    <a class="skip" href="#view">Zum Inhalt</a>
+    <header class="shellbar" role="banner">
+      <nav role="navigation" aria-label="Hauptnavigation"><a href="#/">Haushelden</a></nav>
+    </header>
+    <main id="view" role="main" tabindex="-1"></main>
+    <footer class="shellfoot" role="contentinfo">
+      <div id="syncstate" class="hidden" role="status" aria-live="polite"></div>
+    </footer>
+    <script src="js/errors.js"></script>
+    <script src="js/dates.js"></script>
+    <script src="js/merge.js"></script>
+    <script src="js/outbox.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/sse.js"></script>
+    <script src="js/pb.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/routes.js"></script>
+    <script src="js/app.js"></script>
   </body>
 </html>
