@@ -1,0 +1,24 @@
+{
+  "name": "haushelden",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Family planner for one household (v1 development tooling; the prototype at the repository root has no build step)",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node scripts/start.js",
+    "seed": "node scripts/seed.js",
+    "pb:download": "bash scripts/pb-download.sh",
+    "test": "node --test \"test/*.test.js\"",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.1",
+    "eslint": "9.39.1",
+    "globals": "16.5.0",
+    "prettier": "3.6.2"
+  }
+}

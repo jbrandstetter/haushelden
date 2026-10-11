@@ -14,3 +14,34 @@ Try it: https://jbrandstetter.github.io/haushelden/ or open `index.html` locally
 - Settings: today's progress, task editor, names/avatars/colours, mascot choice
 - Prototype only: data stays on the device. The real version would sit on a small server (PocketBase on pve1)
   so all devices share it, and the mascot's lines would be written nightly by Hermes and approved by a parent.
+
+## v1 development
+
+The production version (PocketBase backend, `app/` PWA) is built next to the prototype, which stays at the repository
+root and keeps being served by GitHub Pages. Specs and decisions are in `docs/`; deployment values never live here
+(ADR-0004), only the configuration keys in `.env.example`.
+
+| Path | Purpose |
+|------|---------|
+| `app/` | v1 PWA, served by PocketBase |
+| `pb_migrations/` | schema as PocketBase migrations |
+| `pb_hooks/` | server-side hooks and custom routes (`lib/config.js` is the configuration loader) |
+| `scripts/` | start, seed and PocketBase download scripts |
+
+Run it locally (Node 22 or newer, macOS arm64/amd64 or Linux amd64, no homelab access needed):
+
+```sh
+cp .env.example .env
+npm start        # downloads the pinned PocketBase (HH_PB_VERSION, checksum verified), then serves app/ on 127.0.0.1:8090
+npm run seed     # in a second terminal: fills the fake household (Test-Papa, Test-Mama, Test-Kind-1, Test-Kind-2)
+```
+
+The admin UI is at `/_/`; `npm start` creates a fake local superuser from `HH_DEV_ADMIN_EMAIL` and
+`HH_DEV_ADMIN_PASSWORD` in `.env`. The seed script only creates what exists: for each collection it checks the local
+PocketBase and skips collections that no later story has added yet. Each story that adds a collection also adds
+its seed mapping in `scripts/seed/steps.js` (fake data in `scripts/seed/fixtures.js`), so the seeded household
+grows with v1. Right now only the superuser exists and the seed reports every collection as skipped.
+
+With `HH_MODE=production`, startup stops with `missing configuration: <KEY>` when a required key is missing
+(`HH_PUBLIC_URL`, `HH_BACKUP_TARGET`, `HH_PB_VERSION`, and `HH_SETUP_TOKEN` on a fresh install). Checks:
+`npm test`, `npm run lint`, `npm run format:check`.
