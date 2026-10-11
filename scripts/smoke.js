@@ -62,6 +62,13 @@ async function main() {
     assert.equal(page.status, 200);
     assert.match(await page.text(), /Haushelden/);
     console.log("ok: health endpoint and app/ start page");
+    // The committed migrations ran: the household collections exist and give an anonymous caller nothing.
+    for (const name of ["members", "parents", "devices", "settings"]) {
+      const res = await fetch(`http://127.0.0.1:${PORT}/api/collections/${name}/records`);
+      assert.equal(res.status, 200, `${name}: collection missing (migrations did not run?)`);
+      assert.equal((await res.json()).totalItems, 0, `${name}: anonymous caller must see no records`);
+    }
+    console.log("ok: household collections exist and are closed to anonymous callers");
   } finally {
     dev.child.kill("SIGTERM");
     await dev.exited;

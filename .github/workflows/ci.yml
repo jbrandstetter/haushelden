@@ -38,3 +38,5 @@ jobs:
           npm run pb:download
       - name: Boot throwaway PocketBase and probe health
         run: npm run smoke
+      - name: Access rules and seed tests against throwaway PocketBase
+        run: npm run test:rules

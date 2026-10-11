@@ -5,11 +5,30 @@
 // story that creates a collection also adjusts the matching records here to its schema.
 
 const members = [
-  { key: "papa", name: "Test-Papa", role: "parent" },
-  { key: "mama", name: "Test-Mama", role: "parent" },
-  { key: "kind1", name: "Test-Kind-1", role: "kid" },
-  { key: "kind2", name: "Test-Kind-2", role: "kid" },
+  { key: "papa", name: "Test-Papa", role: "parent", emoji: "🧔", colour: "blue" },
+  { key: "mama", name: "Test-Mama", role: "parent", emoji: "👩", colour: "pink" },
+  { key: "kind1", name: "Test-Kind-1", role: "kid", emoji: "⚽", colour: "peach" },
+  { key: "kind2", name: "Test-Kind-2", role: "kid", emoji: "🐴", colour: "mauve" },
 ];
+
+// Parent accounts (SPEC-0001 "Parent Authentication"): fake addresses on the reserved .test domain. Passwords come
+// from the environment (HH_DEV_PARENT_PASSWORD in .env) and fall back to a placeholder; they are local-only.
+const parents = [
+  { key: "papa", email: "test-papa@example.test", member: "papa" },
+  { key: "mama", email: "test-mama@example.test", member: "mama" },
+];
+
+// One enrolled family device (ADR-0003). The secret comes from HH_DEV_DEVICE_SECRET (at least 32 characters).
+const devices = [
+  { key: "tablet", email: "test-tablet@example.test", name: "Test-Tablet", enrolledBy: "papa" },
+];
+
+const settings = { tz: "", mascot: { pet: "fox" }, auto_refill: true };
+
+const defaultSecrets = {
+  parentPassword: "change-me-dev-parent-password",
+  deviceSecret: "change-me-dev-device-secret-0123456789",
+};
 
 const routines = [
   { title: "Zähne putzen", who: ["kind1", "kind2"] },
@@ -35,4 +54,15 @@ const purchases = [
   { list: "Drogerie", item: "Test-Seife", times: 2 },
 ];
 
-module.exports = { members, routines, todos, areas, lists, purchases };
+module.exports = {
+  members,
+  parents,
+  devices,
+  settings,
+  defaultSecrets,
+  routines,
+  todos,
+  areas,
+  lists,
+  purchases,
+};
