@@ -145,6 +145,40 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
 .pets button { border: 0; background: var(--mantle); border-radius: 14px; width: 54px; height: 54px; font-size: 30px; }
 .pets button[aria-pressed="true"] { box-shadow: inset 0 0 0 3px var(--mauve); }
 .note { font-size: 14px; color: var(--subtext); background: var(--mantle); border-radius: 12px; padding: 10px 12px; }
+
+/* adults */
+.profiles.adults { margin-top: 14px; }
+.profiles.adults .profile { padding: 14px; display: flex; align-items: center; gap: 12px; text-align: left; border-radius: 22px; }
+.profiles.adults .av { width: 56px; height: 56px; font-size: 30px; margin: 0; flex: none; }
+.profiles.adults .nm { font-size: 19px; }
+.qa { display: flex; gap: 8px; }
+.qa input { flex: 1; min-width: 0; border: 0; border-radius: 14px; background: var(--card); box-shadow: var(--shadow); padding: 13px 14px; font-size: 17px; outline: none; }
+.qa button { border: 0; border-radius: 14px; background: var(--c); color: var(--on-accent); font-size: 24px; width: 52px; font-weight: 800; }
+.todos { display: grid; gap: 8px; }
+.todo { display: flex; gap: 12px; align-items: flex-start; background: var(--card); border-radius: 16px; padding: 12px 14px; box-shadow: var(--shadow); }
+.todo .cb { width: 30px; height: 30px; border-radius: 50%; border: 3px solid color-mix(in srgb, var(--c) 50%, transparent); background: transparent;
+  flex: none; display: flex; align-items: center; justify-content: center; padding: 0; }
+.todo .cb svg { width: 16px; height: 16px; opacity: 0; color: var(--on-accent); }
+.todo.done .cb { background: var(--c); border-color: var(--c); }
+.todo.done .cb svg { opacity: 1; }
+.todo.done .tt { text-decoration: line-through; color: var(--overlay); }
+.todo .tx { flex: 1; min-width: 0; cursor: pointer; }
+.todo .tt { font-weight: 650; }
+.todo .meta { font-size: 13px; color: var(--subtext); margin-top: 2px; }
+.meta .late { color: var(--red); font-weight: 700; }
+.editbox { background: var(--mantle); border-radius: 14px; padding: 12px; display: grid; gap: 8px; }
+.editbox input[type=text], .editbox input[type=date] { width: 100%; border: 0; border-radius: 10px; background: var(--card); padding: 9px 10px; font-size: 16px; }
+.editbox .chips { margin-top: 0; }
+.areas { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.area { border: 0; text-align: left; background: var(--card); box-shadow: var(--shadow); border-radius: 16px; padding: 12px; display: grid; gap: 2px; }
+.area.mine { box-shadow: inset 0 0 0 2px var(--c), var(--shadow); }
+.area.sel { background: color-mix(in srgb, var(--c) 20%, var(--card)); }
+.area .ae { font-size: 26px; }
+.area .an { font-weight: 750; font-size: 15px; line-height: 1.2; }
+.area .ao { font-size: 12px; color: var(--subtext); }
+.filterbar { display: flex; align-items: center; gap: 8px; background: color-mix(in srgb, var(--c) 18%, var(--card)); border-radius: 14px; padding: 8px 12px; margin-top: 10px; font-weight: 700; }
+.filterbar button { margin-left: auto; border: 0; background: var(--card); border-radius: 10px; padding: 5px 10px; }
+.kidsum .prog b { width: 120px; }
 </style>
 </head>
 <body>
@@ -164,7 +198,7 @@ const WDL = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag
 
 // ================================================================ state
 const COLORS = ['peach', 'mauve', 'blue', 'green', 'teal', 'pink', 'yellow', 'red', 'sky', 'lavender'];
-const AVATARS = ['🦁', '🦊', '🐯', '🐼', '🦄', '🐸', '🐨', '🐙', '🦖', '🐬', '🦋', '⚽', '🐴', '🎹'];
+const AVATARS = ['🦁', '🦊', '🐯', '🐼', '🦄', '🐸', '🐨', '🐙', '🦖', '🐬', '🦋', '⚽', '🐴', '🎹', '🧔', '👩', '👨', '👱‍♀️', '🧑‍💻', '🏋️'];
 const PETS = [['🐱', 'Mochi'], ['🦊', 'Fuchsi'], ['🐉', 'Drako'], ['🐼', 'Panda'], ['🦉', 'Eule Ole'], ['🐶', 'Bello'], ['🐧', 'Pingu'], ['🤖', 'Robo']];
 const DEFAULT = () => ({
   setup: false,
@@ -184,19 +218,48 @@ const DEFAULT = () => ({
     { id: 'pia', who: 'b', emoji: '🎹', title: 'Klavierstunde', sub: 'Noten einpacken', days: [1], kind: 'hobby' },
     { id: 'rid', who: 'b', emoji: '🐴', title: 'Reiten', sub: 'Reithelm & Stiefel', days: [3], kind: 'hobby' },
   ],
-  done: {},   // 'YYYY-MM-DD' -> { 'itemId:kidId': true }
+  done: {},   // 'YYYY-MM-DD' -> { 'itemId:personId': true }
+  ...ADULT_DEFAULTS(),
+});
+// grown-ups: own to-dos, areas of responsibility with a main contact (owner)
+const ADULT_DEFAULTS = () => ({
+  adults: [
+    { id: 'p1', name: '', emoji: '🧔', color: 'blue' },
+    { id: 'p2', name: '', emoji: '👩', color: 'pink' },
+  ],
+  areas: [
+    { id: 'haus', emoji: '🏠', name: 'Haus & Garten', owner: null },
+    { id: 'auto', emoji: '🚗', name: 'Auto', owner: null },
+    { id: 'geld', emoji: '💶', name: 'Finanzen & Versicherungen', owner: null },
+    { id: 'schule', emoji: '🏫', name: 'Schule & Kinder', owner: null },
+    { id: 'gesund', emoji: '🩺', name: 'Gesundheit & Ärzte', owner: null },
+    { id: 'hobby', emoji: '🚙', name: 'Hobbys & Fahrdienste', owner: null },
+    { id: 'technik', emoji: '🖥️', name: 'Technik & Smart Home', owner: null },
+  ],
+  // who: 'p1', 'p2' or 'parents' (both); due: 'YYYY-MM-DD' or null; done: day it was ticked, or null
+  todos: [
+    { id: 't1', title: 'Winterreifen-Termin vereinbaren', who: 'p1', area: 'auto', due: null, done: null },
+    { id: 't2', title: 'Elternabend in den Kalender eintragen', who: 'parents', area: 'schule', due: keyN(todayN() + 1), done: null },
+    { id: 't3', title: 'Zahnarzt-Termine für die Kinder', who: 'p2', area: 'gesund', due: keyN(todayN() + 5), done: null },
+  ],
 });
 const KEY = 'haushelden.v1';
 let state = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || DEFAULT(); } catch { return DEFAULT(); } })();
+if (!state.adults) { Object.assign(state, ADULT_DEFAULTS()); state.setup = false; }   // older prototype data: ask for the grown-ups' names
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
 const kid = id => state.kids.find(k => k.id === id);
+const adult = id => state.adults.find(a => a.id === id);
+const nKey = k => { const [y, m, d] = k.split('-').map(Number); return Date.UTC(y, m - 1, d) / DAY; };
+const uid = () => Math.random().toString(36).slice(2, 8);
 
-// what does this kid have on day n?
+// which routine items does this person (kid or grown-up) have on day n?
 function itemsFor(k, n) {
+  const isKid = state.kids.includes(k);
   return state.items.filter(it => {
     if (!it.days.includes(wd(n))) return false;
-    if (it.who === 'both') return true;
-    if (it.who === 'rotate') return state.kids[n % state.kids.length].id === k.id;
+    if (it.who === 'both') return isKid;
+    if (it.who === 'parents') return !isKid;
+    if (it.who === 'rotate') return isKid && state.kids[n % state.kids.length].id === k.id;
     return it.who === k.id;
   });
 }
@@ -300,6 +363,7 @@ function render() {
   const [name, arg] = route();
   if (!state.setup) return renderSetup();
   if (name === 'kind' && kid(arg)) return renderKid(kid(arg));
+  if (name === 'ich' && adult(arg)) return renderAdult(adult(arg));
   if (name === 'eltern') return renderParents();
   return renderWho();
 }
@@ -308,15 +372,20 @@ function render() {
 function renderSetup() {
   view.innerHTML = `<div class="ph" style="max-width:520px;margin:0 auto">
     <h1>Willkommen bei Haushelden 👋</h1>
-    <p class="muted">Einmal kurz einrichten (für Eltern). Alles lässt sich später unter „Eltern“ ändern.</p>
+    <p class="muted">Einmal kurz einrichten (für Eltern). Alles lässt sich später unter „Einstellungen“ ändern.</p>
     <div class="panel"><h3>Wie heißen die Kinder?</h3>
       ${state.kids.map((k, i) => `<div class="kidset"><div class="emo">${k.emoji}</div>
         <input type="text" data-i="${i}" placeholder="${i === 0 ? 'Sohn' : 'Tochter'}" value="${esc(k.name)}"></div>`).join('')}
       <p class="note">Die Beispielaufgaben sind schon eingetragen: ⚽ Fußball für das erste Kind, 🎹 Klavier und 🐴 Reiten für das zweite.</p>
     </div>
+    <div class="panel"><h3>Und die Eltern?</h3>
+      ${state.adults.map((a, i) => `<div class="kidset"><div class="emo">${a.emoji}</div>
+        <input type="text" data-a="${i}" placeholder="${i === 0 ? 'Papa' : 'Mama'}" value="${esc(a.name)}"></div>`).join('')}
+    </div>
     <button class="btn primary" id="go">Los geht's</button></div>`;
   document.getElementById('go').onclick = () => {
     view.querySelectorAll('input[data-i]').forEach(inp => { state.kids[+inp.dataset.i].name = inp.value.trim() || (inp.dataset.i === '0' ? 'Sohn' : 'Tochter'); });
+    view.querySelectorAll('input[data-a]').forEach(inp => { state.adults[+inp.dataset.a].name = inp.value.trim() || (inp.dataset.a === '0' ? 'Papa' : 'Mama'); });
     state.setup = true; save(); location.hash = '#/'; render();
   };
 }
@@ -331,8 +400,14 @@ function renderWho() {
       return `<button class="profile" data-k="${k.id}" style="--c:var(--${k.color})"><div class="av">${k.emoji}</div>
         <div class="nm">${esc(k.name)}</div><div class="pr">${p.total ? (p.done === p.total ? 'Alles erledigt ✓' : `${p.done} von ${p.total} erledigt`) : 'Heute frei'}</div></button>`;
     }).join('')}</div>
-    <div style="text-align:center;margin-top:30px"><button class="link" id="parents">Eltern</button></div></div>`;
+    <div class="profiles adults">${state.adults.map(a => {
+      const n = openTodos(a).length;
+      return `<button class="profile" data-a="${a.id}" style="--c:var(--${a.color})"><div class="av">${a.emoji}</div>
+        <div><div class="nm">${esc(a.name)}</div><div class="pr">${n ? `${n} offen` : 'Nichts offen'}${overdue(a) ? ` · <b style="color:var(--red)">${overdue(a)} überfällig</b>` : ''}</div></div></button>`;
+    }).join('')}</div>
+    <div style="text-align:center;margin-top:24px"><button class="link" id="parents">Einstellungen</button></div></div>`;
   view.querySelectorAll('[data-k]').forEach(b => b.onclick = () => { location.hash = '#/kind/' + b.dataset.k; });
+  view.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { location.hash = '#/ich/' + b.dataset.a; });
   document.getElementById('parents').onclick = () => { location.hash = '#/eltern'; };
 }
 
@@ -433,13 +508,137 @@ function celebrate(k) {
   ov.onclick = () => { ov.remove(); renderKid(k); };
 }
 
+// ---------------------------------------------------------------- grown-ups
+const mineTodos = a => state.todos.filter(x => x.who === a.id || x.who === 'parents');
+const openTodos = a => mineTodos(a).filter(x => !x.done);
+const overdue = a => openTodos(a).filter(x => x.due && nKey(x.due) < todayN()).length;
+const areaOf = id => state.areas.find(x => x.id === id);
+function dueLabel(key) {
+  const d = nKey(key) - todayN();
+  if (d < 0) return `<span class="late">überfällig${d < -1 ? ' seit ' + -d + ' Tagen' : ' seit gestern'}</span>`;
+  if (d === 0) return 'heute';
+  if (d === 1) return 'morgen';
+  if (d < 7) return WDL[wd(nKey(key))];
+  return new Date(nKey(key) * DAY).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric', timeZone: 'UTC' });
+}
+const whoLabel = w => w === 'parents' ? 'beide' : (adult(w) || {}).name || '';
+function dueOptions() {
+  const t = todayN(), sat = t + ((5 - wd(t) + 7) % 7 || 7), mon = t + (7 - wd(t));
+  const opts = [['', 'Kein Datum'], [keyN(t), 'Heute'], [keyN(t + 1), 'Morgen'], [keyN(sat), 'Wochenende'], [keyN(mon), 'Nächste Woche']];
+  return opts.filter(([v], i) => opts.findIndex(([w]) => w === v) === i);   // on Sundays "next week" is tomorrow
+}
+
+let areaFilter = null, editing = null, addDue = '', addWho = 'me';
+function renderAdult(a) {
+  document.documentElement.style.setProperty('--c', `var(--${a.color})`);
+  const t = todayN(), tk = keyN(t);
+  const vis = mineTodos(a).filter(x => !areaFilter || x.area === areaFilter);
+  const open = vis.filter(x => !x.done);
+  const byDue = (x, y) => x.due.localeCompare(y.due);
+  const groups = [
+    ['Überfällig', open.filter(x => x.due && x.due < tk).sort(byDue)],
+    ['Heute', open.filter(x => x.due === tk)],
+    ['Demnächst', open.filter(x => x.due && x.due > tk).sort(byDue)],
+    ['Irgendwann', open.filter(x => !x.due)],
+  ];
+  const routine = areaFilter ? [] : itemsFor(a, t);
+  const doneToday = vis.filter(x => x.done === tk);
+  const other = state.adults.find(x => x !== a);
+  const fa = areaFilter && areaOf(areaFilter);
+
+  const row = x => {
+    const ar = areaOf(x.area);
+    const meta = [ar ? `${ar.emoji} ${esc(ar.name)}` : '', x.due ? dueLabel(x.due) : '', x.who !== a.id ? `für ${esc(whoLabel(x.who))}` : ''].filter(Boolean).join(' · ');
+    return `<div class="todo ${x.done ? 'done' : ''}" data-t="${x.id}"><button class="cb" data-cb aria-label="Erledigt">${CHECK}</button>
+      <div class="tx" data-ed><div class="tt">${esc(x.title)}</div>${meta ? `<div class="meta">${meta}</div>` : ''}</div></div>
+      ${editing === x.id ? editBox(x) : ''}`;
+  };
+  const editBox = x => `<div class="editbox" data-box="${x.id}">
+    <input type="text" data-title value="${esc(x.title)}">
+    <div class="chips">${dueOptions().map(([v, l]) => `<button data-due="${v}" aria-pressed="${(x.due || '') === v}">${l}</button>`).join('')}
+      <input type="date" data-date value="${x.due || ''}" style="width:auto;padding:4px 8px;font-size:14px"></div>
+    <div class="chips">${[...state.adults.map(p => [p.id, p.name]), ['parents', 'Beide']].map(([v, l]) => `<button data-who2="${v}" aria-pressed="${x.who === v}">${esc(l)}</button>`).join('')}</div>
+    <div class="chips"><button data-area2="" aria-pressed="${!x.area}">Kein Bereich</button>${state.areas.map(r => `<button data-area2="${r.id}" aria-pressed="${x.area === r.id}">${r.emoji} ${esc(r.name)}</button>`).join('')}</div>
+    <div class="chips"><button data-close style="background:var(--c);color:var(--on-accent)">Fertig</button><button data-delt style="margin-left:auto">🗑 Löschen</button></div></div>`;
+
+  view.innerHTML = `
+    <div class="top" style="--c:var(--${a.color})">
+      <button class="av" id="home" aria-label="Zurück">${a.emoji}</button>
+      <div class="hello"><b>${esc(a.name)}</b><span>${WDL[wd(t)]}, ${new Date(t * DAY).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', timeZone: 'UTC' })}</span></div>
+    </div>
+
+    <div class="panel kidsum" style="padding:12px 14px">${state.kids.map(k => {
+      const p = dayProgress(k, t);
+      return `<div class="prog" style="--c:var(--${k.color})"><b>${k.emoji} ${esc(k.name)}</b><div class="bar"><i style="width:${p.total ? p.done / p.total * 100 : 100}%"></i></div><span>${p.done}/${p.total}</span></div>`;
+    }).join('')}</div>
+
+    <form class="qa" id="qa"><input id="qat" placeholder="Neue Aufgabe${fa ? ' für ' + esc(fa.name) : ''}…" autocomplete="off"><button aria-label="Hinzufügen">+</button></form>
+    <div class="chips" style="margin-top:8px">${dueOptions().slice(0, 3).map(([v, l]) => `<button data-adue="${v}" aria-pressed="${addDue === v}">${l}</button>`).join('')}
+      <span style="width:10px"></span>
+      <button data-awho="me" aria-pressed="${addWho === 'me'}">Für mich</button>
+      ${other ? `<button data-awho="${other.id}" aria-pressed="${addWho === other.id}">Für ${esc(other.name)}</button>` : ''}
+      <button data-awho="parents" aria-pressed="${addWho === 'parents'}">Für uns beide</button></div>
+    ${fa ? `<div class="filterbar">${fa.emoji} ${esc(fa.name)}<button id="clearf">Alle zeigen</button></div>` : ''}
+
+    ${routine.length ? `<div class="section">Routine heute</div><div class="todos">${routine.map(it => `
+      <div class="todo ${isDone(a, it, t) ? 'done' : ''}"><button class="cb" data-rt="${it.id}">${CHECK}</button>
+        <div class="tx"><div class="tt">${it.emoji} ${esc(it.title)}</div>${it.sub ? `<div class="meta">${esc(it.sub)}</div>` : ''}</div></div>`).join('')}</div>` : ''}
+    ${groups.filter(([, xs]) => xs.length).map(([title, xs]) => `<div class="section">${title}</div><div class="todos">${xs.map(row).join('')}</div>`).join('')}
+    ${!open.length && !routine.length ? `<div class="note" style="margin-top:14px">Nichts offen${fa ? ' in diesem Bereich' : ''}. 🎉</div>` : ''}
+    ${doneToday.length ? `<div class="section">Heute erledigt</div><div class="todos">${doneToday.map(row).join('')}</div>` : ''}
+
+    <div class="section">Bereiche</div>
+    <div class="areas">${state.areas.map(r => {
+      const owner = adult(r.owner), n = state.todos.filter(x => x.area === r.id && !x.done).length;
+      return `<button class="area ${r.owner === a.id ? 'mine' : ''} ${areaFilter === r.id ? 'sel' : ''}" data-area="${r.id}">
+        <span class="ae">${r.emoji}</span><span class="an">${esc(r.name)}</span>
+        <span class="ao">${owner ? `${owner.emoji} ${esc(owner.name)}` : 'Wer ist zuständig?'} · ${n} offen</span></button>`;
+    }).join('')}</div>
+    <p class="muted" style="font-size:13px">Umrandet: Bereiche, für die du zuständig bist. Zuständigkeiten legt ihr unter Einstellungen fest.</p>`;
+
+  const $ = id => document.getElementById(id);
+  $('home').onclick = () => { areaFilter = null; editing = null; location.hash = '#/'; };
+  $('qa').onsubmit = e => {
+    e.preventDefault();
+    const title = $('qat').value.trim(); if (!title) return;
+    state.todos.push({ id: uid(), title, who: addWho === 'me' ? a.id : addWho, area: areaFilter, due: addDue || null, done: null });
+    save(); renderAdult(a); $('qat').focus();
+  };
+  view.querySelectorAll('[data-adue]').forEach(b => b.onclick = () => { addDue = b.dataset.adue; renderAdult(a); });
+  view.querySelectorAll('[data-awho]').forEach(b => b.onclick = () => { addWho = b.dataset.awho; renderAdult(a); });
+  if ($('clearf')) $('clearf').onclick = () => { areaFilter = null; renderAdult(a); };
+  view.querySelectorAll('[data-area]').forEach(b => b.onclick = () => { areaFilter = areaFilter === b.dataset.area ? null : b.dataset.area; renderAdult(a); window.scrollTo(0, 0); });
+  view.querySelectorAll('[data-rt]').forEach(b => b.onclick = () => {
+    const it = state.items.find(i => i.id === b.dataset.rt); setDone(a, it, t, !isDone(a, it, t)); renderAdult(a);
+  });
+  const todoOf = el => state.todos.find(x => x.id === el.closest('[data-t]').dataset.t);
+  view.querySelectorAll('[data-cb]').forEach(b => b.onclick = () => {
+    const x = todoOf(b); x.done = x.done ? null : tk; save();
+    if (x.done) { const r = b.getBoundingClientRect(); confetti(r.left + 15, r.top + 15, 14, 0.5); }
+    renderAdult(a);
+  });
+  view.querySelectorAll('[data-ed]').forEach(el => el.onclick = () => { const x = todoOf(el); editing = editing === x.id ? null : x.id; renderAdult(a); });
+  const box = view.querySelector('[data-box]');
+  if (box) {
+    const x = state.todos.find(y => y.id === box.dataset.box);
+    box.querySelector('[data-title]').oninput = e => { x.title = e.target.value; save(); };
+    box.querySelector('[data-date]').onchange = e => { x.due = e.target.value || null; save(); renderAdult(a); };
+    box.querySelectorAll('[data-due]').forEach(b => b.onclick = () => { x.due = b.dataset.due || null; save(); renderAdult(a); });
+    box.querySelectorAll('[data-who2]').forEach(b => b.onclick = () => { x.who = b.dataset.who2; save(); renderAdult(a); });
+    box.querySelectorAll('[data-area2]').forEach(b => b.onclick = () => { x.area = b.dataset.area2 || null; save(); renderAdult(a); });
+    box.querySelector('[data-close]').onclick = () => { editing = null; renderAdult(a); };
+    box.querySelector('[data-delt]').onclick = () => { state.todos = state.todos.filter(y => y !== x); editing = null; save(); renderAdult(a); };
+  }
+}
+
 // ---------------------------------------------------------------- parents
 function renderParents() {
   document.documentElement.style.removeProperty('--c');
   const t = todayN();
-  const whoOpts = [...state.kids.map(k => [k.id, k.name]), ['both', 'Beide'], ['rotate', 'Abwechselnd']];
+  const whoOpts = [...state.kids.map(k => [k.id, k.name]), ['both', 'Beide Kinder'], ['rotate', 'Kinder abwechselnd'], ...state.adults.map(a => [a.id, a.name]), ['parents', 'Beide Eltern']];
+  const people = [...state.kids, ...state.adults];
   view.innerHTML = `<div class="ph">
-    <div class="row" style="display:flex;align-items:center;gap:8px"><button class="btn" id="back">‹ Zurück</button><h1 style="margin-left:6px">Eltern</h1></div>
+    <div class="row" style="display:flex;align-items:center;gap:8px"><button class="btn" id="back">‹ Zurück</button><h1 style="margin-left:6px">Einstellungen</h1></div>
     <p class="muted">Prototyp: Daten bleiben auf diesem Gerät. In der echten Version liegt alles auf dem Server und alle Geräte sehen dasselbe.</p>
 
     <div class="panel"><h3>Heute</h3>${state.kids.map(k => {
@@ -449,7 +648,14 @@ function renderParents() {
         <div class="mini">${its.map(it => `<span class="${isDone(k, it, t) ? 'ok' : ''}">${isDone(k, it, t) ? '✓' : '○'} ${it.emoji} ${esc(it.title)}</span>`).join('')}</div></div>`;
     }).join('')}</div>
 
-    <div class="panel"><h3>Aufgaben</h3><div class="ed" id="ed">${state.items.map(it => `
+    <div class="panel"><h3>Bereiche & Zuständigkeiten</h3><div class="ed">${state.areas.map(r => `
+      <div class="edrow" data-ar="${r.id}"><input type="text" class="emo" data-af="emoji" value="${esc(r.emoji)}">
+        <div><input type="text" data-af="name" value="${esc(r.name)}">
+          <div class="chips">${state.adults.map(p => `<button data-own="${p.id}" aria-pressed="${r.owner === p.id}">${p.emoji} ${esc(p.name)}</button>`).join('')}
+            <button data-own="" aria-pressed="${!r.owner}">Offen</button><button data-delar style="margin-left:auto">🗑</button></div></div></div>`).join('')}</div>
+      <div style="margin-top:10px"><button class="btn" id="addar">+ Bereich</button></div></div>
+
+    <div class="panel"><h3>Routine-Aufgaben (wiederkehrend)</h3><div class="ed" id="ed">${state.items.map(it => `
       <div class="edrow" data-id="${it.id}"><input type="text" class="emo" data-f="emoji" value="${esc(it.emoji)}">
         <div><input type="text" data-f="title" value="${esc(it.title)}">
           <input type="text" data-f="sub" value="${esc(it.sub)}" placeholder="Hinweis (optional)" style="margin-top:6px;font-size:14px">
@@ -458,7 +664,7 @@ function renderParents() {
             <button data-del style="margin-left:auto">🗑</button></div></div></div>`).join('')}</div>
       <div style="margin-top:10px"><button class="btn" id="add">+ Aufgabe</button></div></div>
 
-    <div class="panel"><h3>Kinder</h3>${state.kids.map((k, i) => `
+    <div class="panel"><h3>Familie</h3>${people.map((k, i) => `
       <div class="kidset"><div class="emo">${k.emoji}</div><input type="text" data-kname="${i}" value="${esc(k.name)}">
         <div class="swatches">${COLORS.map(c => `<button data-kc="${i}:${c}" aria-pressed="${k.color === c}" style="background:var(--${c})"></button>`).join('')}</div>
         <div class="pets" style="grid-column:2">${AVATARS.map(a => `<button data-ka="${i}:${a}" aria-pressed="${k.emoji === a}" style="width:42px;height:42px;font-size:22px">${a}</button>`).join('')}</div></div>`).join('')}
@@ -486,9 +692,14 @@ function renderParents() {
   });
   view.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { state.items = state.items.filter(i => i !== itemOf(b)); save(); renderParents(); });
   $('add').onclick = () => { state.items.push({ id: Math.random().toString(36).slice(2, 8), who: 'both', emoji: '⭐', title: 'Neue Aufgabe', sub: '', days: [0, 1, 2, 3, 4], kind: 'chore' }); save(); renderParents(); };
-  view.querySelectorAll('[data-kname]').forEach(inp => inp.oninput = () => { state.kids[+inp.dataset.kname].name = inp.value; save(); });
-  view.querySelectorAll('[data-kc]').forEach(b => b.onclick = () => { const [i, c] = b.dataset.kc.split(':'); state.kids[+i].color = c; save(); renderParents(); });
-  view.querySelectorAll('[data-ka]').forEach(b => b.onclick = () => { const [i, a] = b.dataset.ka.split(':'); state.kids[+i].emoji = a; save(); renderParents(); });
+  view.querySelectorAll('[data-kname]').forEach(inp => inp.oninput = () => { people[+inp.dataset.kname].name = inp.value; save(); });
+  view.querySelectorAll('[data-kc]').forEach(b => b.onclick = () => { const [i, c] = b.dataset.kc.split(':'); people[+i].color = c; save(); renderParents(); });
+  view.querySelectorAll('[data-ka]').forEach(b => b.onclick = () => { const [i, a] = b.dataset.ka.split(':'); people[+i].emoji = a; save(); renderParents(); });
+  const areaEl = el => state.areas.find(r => r.id === el.closest('[data-ar]').dataset.ar);
+  view.querySelectorAll('[data-af]').forEach(inp => inp.oninput = () => { areaEl(inp)[inp.dataset.af] = inp.value; save(); });
+  view.querySelectorAll('[data-own]').forEach(b => b.onclick = () => { areaEl(b).owner = b.dataset.own || null; save(); renderParents(); });
+  view.querySelectorAll('[data-delar]').forEach(b => b.onclick = () => { const r = areaEl(b); state.areas = state.areas.filter(x => x !== r); state.todos.forEach(x => { if (x.area === r.id) x.area = null; }); save(); renderParents(); });
+  $('addar').onclick = () => { state.areas.push({ id: uid(), emoji: '📌', name: 'Neuer Bereich', owner: null }); save(); renderParents(); };
   view.querySelectorAll('[data-pet]').forEach(b => b.onclick = () => { state.pet = { emoji: b.dataset.pet, name: b.dataset.pn }; save(); renderParents(); });
   $('petname').oninput = () => { state.pet.name = $('petname').value; save(); };
   $('resetday').onclick = () => { delete state.done[keyN(t)]; save(); renderParents(); };
