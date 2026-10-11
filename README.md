@@ -40,8 +40,10 @@ The admin UI is at `/_/`; `npm start` creates a fake local superuser from `HH_DE
 `HH_DEV_ADMIN_PASSWORD` in `.env`. The seed script only creates what exists: for each collection it checks the local
 PocketBase and skips collections that no later story has added yet. Each story that adds a collection also adds
 its seed mapping in `scripts/seed/steps.js` (fake data in `scripts/seed/fixtures.js`), so the seeded household
-grows with v1. Right now only the superuser exists and the seed reports every collection as skipped.
+grows with v1. The seed now creates the fake household: four members, two parent accounts, one enrolled device and the settings
+record (passwords from `HH_DEV_PARENT_PASSWORD` / `HH_DEV_DEVICE_SECRET`, local only); running it twice changes nothing.
 
 With `HH_MODE=production`, startup stops with `missing configuration: <KEY>` when a required key is missing
 (`HH_PUBLIC_URL`, `HH_BACKUP_TARGET`, `HH_PB_VERSION`, and `HH_SETUP_TOKEN` on a fresh install). Checks:
-`npm test`, `npm run lint`, `npm run format:check`.
+`npm test`, `npm run lint`, `npm run format:check`; `npm run test:rules` runs the access-rule and seed tests against a
+throwaway PocketBase (needs `npm run pb:download` once).

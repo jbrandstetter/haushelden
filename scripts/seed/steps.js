@@ -11,8 +11,39 @@ const steps = [
   {
     collection: "members",
     key: "key",
-    records: () => fixtures.members.map((m) => ({ key: m.key, name: m.name, role: m.role })),
+    records: () =>
+      fixtures.members.map(({ key, name, role, emoji, colour }) => ({ key, name, role, emoji, colour })),
+    // Maps an existing record back to its fixture key, so later steps still find ids on a re-run.
+    identify: (record) => fixtures.members.find((m) => m.name === record.name)?.key,
   },
+  {
+    collection: "parents",
+    key: "key",
+    records: ({ ids, secrets }) =>
+      fixtures.parents.map(({ key, email, member }) => ({
+        key,
+        email,
+        password: secrets.parentPassword,
+        passwordConfirm: secrets.parentPassword,
+        emailVisibility: true,
+        member: ids.members[member],
+      })),
+    identify: (record) => fixtures.parents.find((p) => p.email === record.email)?.key,
+  },
+  {
+    collection: "devices",
+    key: "key",
+    records: ({ ids, secrets }) =>
+      fixtures.devices.map(({ key, email, name, enrolledBy }) => ({
+        key,
+        email,
+        name,
+        password: secrets.deviceSecret,
+        passwordConfirm: secrets.deviceSecret,
+        enrolled_by: ids.parents[enrolledBy],
+      })),
+  },
+  { collection: "settings", records: () => [{ ...fixtures.settings }] },
   // routines, todos, areas, lists, shop_items and purchases are added by the stories that create those
   // collections, using fixtures.routines / todos / areas / lists / purchases.
 ];

@@ -12,6 +12,7 @@
     "smoke": "node scripts/smoke.js",
     "pb:download": "bash scripts/pb-download.sh",
     "test": "node --test \"test/*.test.js\"",
+    "test:rules": "node --test \"test/rules/*.test.js\"",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
