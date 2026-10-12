@@ -77,6 +77,7 @@
       transport = HH.pb.createPocketBaseTransport({ getToken: HH.auth.token });
       data = HH.data.createData({ transport, storage });
       data.configureMerge; // feature stories register their merge rules at their own start-up
+      if (HH.shop) HH.shop.registerMerge(data);
       data.onStatus(showHint);
       HH.app.data = data;
     }
