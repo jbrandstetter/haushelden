@@ -16,6 +16,7 @@ const FILES = [
   "icon-512.png",
   "js/errors.js",
   "js/dates.js",
+  "js/routines.js",
   "js/merge.js",
   "js/outbox.js",
   "js/storage.js",
@@ -26,6 +27,8 @@ const FILES = [
   "js/routes.js",
   "js/app.js",
   "js/screens/home.js",
+  "js/screens/routinen.js",
+  "js/screens/maskottchen.js",
 ];
 
 self.addEventListener("install", (e) => {
