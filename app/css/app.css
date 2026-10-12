@@ -389,6 +389,299 @@ footer.shellfoot {
   margin-top: 0;
 }
 
+/* Kid board (SPEC-0002), scoped under .kid. Ported from the prototype's board styles. */
+.kid .top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.kid .top .av {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  text-decoration: none;
+  background: color-mix(in srgb, var(--c) 25%, var(--mantle));
+}
+.kid .hello {
+  flex: 1;
+  min-width: 0;
+}
+.kid .hello b {
+  display: block;
+  font-size: 24px;
+  line-height: 1.15;
+}
+.kid .hello span {
+  color: var(--subtext);
+  font-size: 15px;
+}
+.kid .ring {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  position: relative;
+  border-radius: 50%;
+  background: conic-gradient(var(--c) calc(var(--p, 0) * 1%), var(--surface0) 0);
+  transition: background 0.4s;
+}
+.kid .ring .lbl {
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: var(--base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+}
+.kid .mascot {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin: 6px 0 18px;
+}
+.kid .mascot .pet {
+  font-size: 64px;
+  line-height: 1;
+  flex: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.12));
+}
+.kid .mascot .pet.hop {
+  animation: kid-hop 0.6s ease;
+}
+@keyframes kid-hop {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  30% {
+    transform: translateY(-18px) rotate(-8deg);
+  }
+  60% {
+    transform: translateY(0) rotate(6deg);
+  }
+}
+.kid .bubble {
+  position: relative;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  border-radius: 20px 20px 20px 6px;
+  padding: 12px 16px;
+  font-size: 18px;
+  font-weight: 650;
+  min-height: 48px;
+  flex: 1;
+}
+.kid .bubble small {
+  display: block;
+  color: var(--overlay);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.kid .tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+  gap: 12px;
+}
+.kid .tile {
+  position: relative;
+  border: 0;
+  border-radius: 24px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  padding: 16px 14px 14px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 150px;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.kid .tile:active {
+  transform: scale(0.96);
+}
+.kid .tile .em {
+  font-size: 44px;
+  line-height: 1;
+}
+.kid .tile .tt {
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.2;
+}
+.kid .tile .st {
+  font-size: 14px;
+  color: var(--subtext);
+}
+.kid .tile .tag {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--c);
+  margin-top: auto;
+}
+.kid .tile .tick {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid var(--surface1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  font-weight: 900;
+}
+.kid .tile.done {
+  background: color-mix(in srgb, var(--c) 18%, var(--card));
+}
+.kid .tile.done .tick {
+  background: var(--c);
+  border-color: var(--c);
+  color: var(--on-accent);
+}
+.kid .tile.done .tt {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  text-decoration-color: color-mix(in srgb, var(--c) 70%, transparent);
+}
+.kid .tile.pop {
+  animation: kid-pop 0.35s ease;
+}
+@keyframes kid-pop {
+  50% {
+    transform: scale(1.06);
+  }
+}
+.kid .note {
+  font-size: 14px;
+  color: var(--subtext);
+  background: var(--mantle);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.kid .week {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  border-radius: 20px;
+  padding: 12px 14px;
+}
+.kid .week .d {
+  text-align: center;
+  flex: 1;
+  font-size: 13px;
+  color: var(--subtext);
+  font-weight: 700;
+}
+.kid .week .dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin: 4px auto 0;
+  background: var(--surface0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+.kid .week .dot.full {
+  background: var(--c);
+  color: var(--on-accent);
+}
+.kid .week .dot.part {
+  background: color-mix(in srgb, var(--c) 35%, var(--surface0));
+}
+.kid .week .dot.none {
+  background: transparent;
+  border: 2px dashed var(--surface1);
+}
+.kid .week .today .dot {
+  outline: 3px solid var(--text);
+  outline-offset: 2px;
+}
+.kid .streak {
+  text-align: center;
+  margin-top: 10px;
+  color: var(--subtext);
+  font-weight: 700;
+}
+.kid .sound {
+  text-align: center;
+  margin-top: 18px;
+}
+.kid .alldone {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--base) 75%, transparent);
+  cursor: pointer;
+}
+.kid .alldone .box {
+  background: var(--card);
+  border-radius: 30px;
+  box-shadow: var(--shadow);
+  padding: 28px 24px;
+  text-align: center;
+  max-width: 380px;
+  margin: 16px;
+  animation: kid-pop 0.4s ease;
+}
+.kid .alldone .pet {
+  font-size: 90px;
+  animation: kid-hop 0.8s ease 2;
+}
+.kid .alldone h2 {
+  margin: 8px 0 6px;
+  font-size: 28px;
+}
+.kid .alldone p {
+  font-size: 18px;
+  color: var(--subtext);
+  margin: 0 0 18px;
+}
+canvas#confetti {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 50;
+}
+/* Reduced motion (SPEC-0002 "Completion Celebration"): no hop, pop or transitions; the script also skips confetti. */
+@media (prefers-reduced-motion: reduce) {
+  .kid *,
+  .kid *::before,
+  .kid *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  canvas#confetti {
+    display: none;
+  }
+}
+
 /* areas panel, filter highlight, "Routine heute" and the kids' glance (SPEC-0003, #/eltern) and the areas editor (#/bereiche) */
 .eltern .kidsum {
   padding: 12px 14px;

@@ -44,7 +44,14 @@
       list.textContent = "";
       if (members.length === 0) list.append(el("li", "muted", "Noch keine Mitglieder."));
       for (const m of members) {
-        const item = el("li", m._pending ? "pending" : "", `${m.emoji || ""} ${m.name || ""}`.trim());
+        const label = `${m.emoji || ""} ${m.name || ""}`.trim();
+        const item = el("li", m._pending ? "pending" : "");
+        if (m.role === "kid") {
+          // The kid's board (SPEC-0002), route #/kind/<memberId>.
+          const link = el("a", "link", label);
+          link.href = `#/kind/${encodeURIComponent(m.id)}`;
+          item.append(link);
+        } else item.textContent = label;
         if (m.colour) item.style.setProperty("--c", `var(--${m.colour})`);
         list.append(item);
       }
