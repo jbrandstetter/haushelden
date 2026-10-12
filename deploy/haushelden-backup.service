@@ -1,0 +1,15 @@
+# Governing: SPEC-0007 REQ "Backup and Restore", REQ "Error Handling Standards"
+# Template: runs scripts/backup.sh once as the service user. A non-zero exit marks the unit failed, which the
+# monitoring (stale backup alert) and `systemctl --failed` show.
+[Unit]
+Description=Haushelden nightly backup
+
+[Service]
+Type=oneshot
+User=haushelden
+Group=haushelden
+EnvironmentFile=/etc/haushelden/haushelden.env
+ExecStart=/opt/haushelden/scripts/backup.sh
+SyslogIdentifier=haushelden-backup
+NoNewPrivileges=true
+PrivateTmp=true

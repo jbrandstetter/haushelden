@@ -1,0 +1,12 @@
+# Governing: SPEC-0007 REQ "Backup and Restore", SPEC-0001 REQ "Backups" (at least daily)
+# Template: nightly backup at a quiet hour; the time zone is the container's.
+[Unit]
+Description=Haushelden nightly backup timer
+
+[Timer]
+OnCalendar=*-*-* 03:15:00
+RandomizedDelaySec=300
+Persistent=true
+
+[Install]
+WantedBy=timers.target
