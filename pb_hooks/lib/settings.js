@@ -5,7 +5,8 @@
 // (what a parent may change about a member, the last-parent rule) and the shape of the data export.
 
 const EXPORT_VERSION = 1;
-const EXPORT_LIMIT_PER_WINDOW = 5; // exports per parent per 15 minutes (SPEC-0001 "Rate Limiting")
+const EXPORT_LIMIT_PER_WINDOW = 20; // exports per parent per 15 minutes (SPEC-0001 "Rate Limiting")
+const EXPORT_WINDOW_MS = 15 * 60 * 1000;
 
 // Base collections that never leave the server in an export (invite tokens are credentials).
 const EXCLUDED_COLLECTIONS = ["invites"];
@@ -87,6 +88,24 @@ function checkMemberDelete({ role, hasAccount, parentAccounts }) {
   return parentAccounts <= 1 ? LAST_PARENT : NOT_REMOVABLE;
 }
 
+/**
+ * Counts one export for `id` in a store with get/set (PocketBase's `$app.store()`); returns false when the
+ * parent already used up the window. Exports are cheap to ask for and costly to build, so every call counts.
+ */
+function takeExportSlot(store, id, now = Date.now()) {
+  const key = `hh.rl.export.${id}`;
+  let list = [];
+  try {
+    list = JSON.parse(store.get(key) || "[]").filter((t) => now - t < EXPORT_WINDOW_MS);
+  } catch {
+    list = [];
+  }
+  if (list.length >= EXPORT_LIMIT_PER_WINDOW) return false;
+  list.push(now);
+  store.set(key, JSON.stringify(list));
+  return true;
+}
+
 /** PocketBase side: true when a `parents` account belongs to the member. */
 function hasAccount(app, memberId) {
   try {
@@ -101,6 +120,7 @@ module.exports = {
   hasAccount,
   EXPORT_VERSION,
   EXPORT_LIMIT_PER_WINDOW,
+  takeExportSlot,
   EXCLUDED_COLLECTIONS,
   SENSITIVE_KEYS,
   scrub,

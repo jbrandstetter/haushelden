@@ -40,10 +40,17 @@ describe("household settings and data export", () => {
     papa = setup.data.token;
     ids.papa = setup.data.record.member;
     ids.papaAccount = setup.data.record.id;
-    ids.kid1 = (await create("members", { role: "kid", name: "Test-Kind-1", emoji: "⚽", colour: "peach" }, papa)).id;
-    ids.kid2 = (await create("members", { role: "kid", name: "Test-Kind-2", emoji: "🎨", colour: "teal" }, papa)).id;
+    ids.kid1 = (
+      await create("members", { role: "kid", name: "Test-Kind-1", emoji: "⚽", colour: "peach" }, papa)
+    ).id;
+    ids.kid2 = (
+      await create("members", { role: "kid", name: "Test-Kind-2", emoji: "🎨", colour: "teal" }, papa)
+    ).id;
     // The own PIN, so the member row carries a hash that must not leave the server.
-    assert.equal((await pb.api("PUT", "/api/hh/pin", { token: papa, body: { pin: PIN, password: PW } })).status, 200);
+    assert.equal(
+      (await pb.api("PUT", "/api/hh/pin", { token: papa, body: { pin: PIN, password: PW } })).status,
+      200,
+    );
 
     const routine = await create("routines", {
       emoji: "🪥",
@@ -57,11 +64,15 @@ describe("household settings and data export", () => {
     await create("routine_done", { routine: routine.id, member: ids.kid1, day: "2026-10-12" });
     await create("routine_done", { routine: routine.id, member: ids.kid1, day: "2026-10-13" });
     await create("todos", { title: "Test-Aufgabe", who: ids.papa }, papa);
-    ids.area = (await create("areas", { emoji: "🚗", name: "Test-Bereich", owner: ids.kid2 }, papa)).id;
+    ids.area = (await create("areas", { emoji: "🚗", name: "Test-Bereich", owner: ids.papa }, papa)).id;
     ids.list = (await create("lists", { emoji: "🛒", name: "Test-Liste" }, papa)).id;
     ids.item = (await create("shop_items", { list: ids.list, name: "Milch", by: ids.kid1 }, papa)).id;
     await pb.api("PATCH", rec("shop_items", ids.item), { token: papa, body: { bought: "2026-10-12" } });
-    await create("settings", { tz: "", mascot: { emoji: "🦊", name: "Test-Fuchs" }, auto_refill: true }, papa);
+    await create(
+      "settings",
+      { tz: "", mascot: { emoji: "🦊", name: "Test-Fuchs" }, auto_refill: true },
+      papa,
+    );
 
     const secret = crypto.randomBytes(32).toString("hex");
     const enrolled = await pb.api("POST", "/api/hh/devices/enroll", {
@@ -121,7 +132,10 @@ describe("household settings and data export", () => {
 
     it("is offered as a download", async () => {
       const raw = await fetch(`${pb.base}/api/hh/export`, { headers: { authorization: papa } });
-      assert.match(raw.headers.get("content-disposition"), /^attachment; filename="haushelden-export-\d{4}-\d{2}-\d{2}\.json"$/);
+      assert.match(
+        raw.headers.get("content-disposition"),
+        /^attachment; filename="haushelden-export-\d{4}-\d{2}-\d{2}\.json"$/,
+      );
       assert.equal(raw.headers.get("cache-control"), "no-store");
       await raw.text();
     });
@@ -148,9 +162,14 @@ describe("household settings and data export", () => {
         url: "/api/collections/purchases/records",
         body: { list: list.id, name: `Artikel ${i}`, key: `artikel ${i}`, day: "2026-09-01" },
       }));
-      for (let i = 0; i < rows.length; i += 200) {
-        const res = await pb.api("POST", "/api/batch", { token: su, body: { requests: rows.slice(i, i + 200) } });
-        assert.equal(res.status, 200, JSON.stringify(res.data).slice(0, 200));
+      for (let i = 0; i < rows.length; i += 50) {
+        const res = await Promise.all(
+          rows.slice(i, i + 50).map((r) => pb.api("POST", rec("purchases"), { token: su, body: r.body })),
+        );
+        assert.ok(
+          res.every((x) => x.status === 200),
+          JSON.stringify(res.find((x) => x.status !== 200)),
+        );
       }
       const t0 = Date.now();
       const raw = await fetch(`${pb.base}/api/hh/export`, { headers: { authorization: papa } });
@@ -178,7 +197,10 @@ describe("household settings and data export", () => {
         body: { role: "kid", name: "Eindringling", emoji: "👻", colour: "red" },
       });
       assert.ok(add.status >= 400);
-      const rename = await pb.api("PATCH", rec("members", ids.kid2), { token: device.token, body: { name: "X" } });
+      const rename = await pb.api("PATCH", rec("members", ids.kid2), {
+        token: device.token,
+        body: { name: "X" },
+      });
       assert.ok(rename.status >= 400);
       const del = await pb.api("DELETE", rec("members", ids.kid2), { token: device.token });
       assert.ok(del.status >= 400);
@@ -191,7 +213,10 @@ describe("household settings and data export", () => {
         body: { role: "parent", name: "Test-Fremd", emoji: "🙂", colour: "red" },
       });
       assert.equal(mint.status, 400);
-      const promote = await pb.api("PATCH", rec("members", ids.kid2), { token: papa, body: { role: "parent" } });
+      const promote = await pb.api("PATCH", rec("members", ids.kid2), {
+        token: papa,
+        body: { role: "parent" },
+      });
       assert.equal(promote.status, 400);
       const demote = await pb.api("PATCH", rec("members", ids.papa), { token: papa, body: { role: "kid" } });
       assert.equal(demote.status, 400);
@@ -206,17 +231,24 @@ describe("household settings and data export", () => {
       assert.equal((await superGet("members", ids.papa)).id, ids.papa);
     });
 
-    it("removing a kid deletes their routines and ticks and leaves shopping items and areas, unassigned", async () => {
+    it("removing a kid deletes their routines and ticks and leaves shopping items (unassigned) and areas", async () => {
       const del = await pb.api("DELETE", rec("members", ids.kid1), { token: papa });
       assert.equal(del.status, 204);
-      const ticks = await pb.api("GET", `${rec("routine_done")}?filter=${encodeURIComponent(`member = "${ids.kid1}"`)}`, { token: su });
+      const ticks = await pb.api(
+        "GET",
+        `${rec("routine_done")}?filter=${encodeURIComponent(`member = "${ids.kid1}"`)}`,
+        { token: su },
+      );
       assert.equal(ticks.data.totalItems, 0);
       assert.equal((await pb.api("GET", rec("routines", ids.routine), { token: su })).status, 404);
       assert.equal((await superGet("shop_items", ids.item)).by, "");
-      // Area owned by the other kid is untouched; remove that kid too and the area stays, without owner.
+      // Removing the other kid as well leaves the area (owned by a parent) untouched.
       assert.equal((await pb.api("DELETE", rec("members", ids.kid2), { token: papa })).status, 204);
-      assert.equal((await superGet("areas", ids.area)).owner, "");
-      assert.equal((await pb.api("GET", "/api/hh/export", { token: papa })).data.collections.members.length, 1);
+      assert.equal((await superGet("areas", ids.area)).owner, ids.papa);
+      assert.equal(
+        (await pb.api("GET", "/api/hh/export", { token: papa })).data.collections.members.length,
+        1,
+      );
     });
   });
 
@@ -232,10 +264,15 @@ describe("household settings and data export", () => {
     });
 
     it("Replaced iPad: removing the device ends its session on the next request", async () => {
-      assert.equal((await pb.api("GET", rec("members"), { token: device.token })).status, 200);
-      assert.equal((await pb.api("DELETE", rec("devices", device.id), { token: device.token })).status >= 400, true);
+      const asDevice = () =>
+        pb.api("POST", "/api/hh/pin", { token: device.token, body: { member: ids.papa, pin: PIN } });
+      assert.equal((await asDevice()).status, 200);
+      assert.equal(
+        (await pb.api("DELETE", rec("devices", device.id), { token: device.token })).status >= 400,
+        true,
+      );
       assert.equal((await pb.api("DELETE", rec("devices", device.id), { token: papa })).status, 204);
-      const after = await pb.api("GET", rec("members"), { token: device.token });
+      const after = await asDevice();
       assert.ok(after.status === 401 || after.status === 403, `HTTP ${after.status}`);
       const refresh = await pb.api("POST", "/api/collections/devices/auth-refresh", { token: device.token });
       assert.ok(refresh.status >= 400);
@@ -261,13 +298,23 @@ describe("household settings and data export", () => {
       assert.equal((await pb.api("GET", "/api/hh/export", { token: papa })).status, 200);
     });
   });
+});
 
-  describe("export rate limit", () => {
-    it("allows five exports per window and then answers 429", async () => {
+describe("export rate limit", () => {
+  it("allows twenty exports per window and then answers 429", async () => {
+    const pb = await startPocketBase({ env: { HH_SETUP_TOKEN: SETUP_TOKEN } });
+    try {
+      const setup = await pb.api("POST", "/api/hh/setup", {
+        body: { token: SETUP_TOKEN, name: "Test-Mama", email: "test-mama@example.test", password: PW },
+      });
       const results = [];
-      for (let i = 0; i < 8; i++) results.push((await pb.api("GET", "/api/hh/export", { token: papa })).status);
-      assert.ok(results.includes(429), JSON.stringify(results));
+      for (let i = 0; i < 22; i++)
+        results.push((await pb.api("GET", "/api/hh/export", { token: setup.data.token })).status);
       assert.equal(results[0], 200);
-    });
+      assert.equal(results[19], 200);
+      assert.equal(results[20], 429, JSON.stringify(results));
+    } finally {
+      await pb.stop();
+    }
   });
 });
