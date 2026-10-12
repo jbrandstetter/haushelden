@@ -680,6 +680,7 @@ canvas#confetti {
   canvas#confetti {
     display: none;
   }
+}
 
 /* areas panel, filter highlight, "Routine heute" and the kids' glance (SPEC-0003, #/eltern) and the areas editor (#/bereiche) */
 .eltern .kidsum {
