@@ -33,6 +33,8 @@ const FILES = [
   "js/calendar.js",
   "js/router.js",
   "js/shop.js",
+  "js/rhythm.js",
+  "js/shop-learning.js",
   "js/routes.js",
   "js/app.js",
   "js/screens/home.js",
@@ -45,6 +47,7 @@ const FILES = [
   "js/screens/einladung.js",
   "js/screens/wer.js",
   "js/screens/shopping.js",
+  "js/screens/gelernt.js",
   "js/screens/bereiche.js",
 ];
 

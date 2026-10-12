@@ -239,3 +239,39 @@
   border-radius: 12px;
   padding: 10px 12px;
 }
+
+/* Purchase history (SPEC-0005): reason line, suggestion chips, learned overview. */
+.shop .sitem .nm .why {
+  display: block;
+  font-size: 12px;
+  color: var(--overlay);
+}
+.shop .sugg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+}
+.shop .sugg .chip {
+  border: 1px solid var(--overlay);
+  background: transparent;
+  color: inherit;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  min-height: 36px;
+}
+.shop .sugg .chip.due {
+  border-color: var(--c);
+}
+.shop .learned .rows .row {
+  padding: 8px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--overlay) 30%, transparent);
+}
+.shop .learned .switch {
+  display: block;
+  margin: 10px 0;
+}
+.shop .learned .btn.danger {
+  border-color: var(--red, #d20f39);
+}
