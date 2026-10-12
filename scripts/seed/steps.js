@@ -7,13 +7,21 @@
 
 const fixtures = require("./fixtures.js");
 const routines = require("./routines.js");
+const { pinFields } = require("./accounts.js"); // fake PIN for the seeded parents (accounts story)
 
 const steps = [
   {
     collection: "members",
     key: "key",
-    records: () =>
-      fixtures.members.map(({ key, name, role, emoji, colour }) => ({ key, name, role, emoji, colour })),
+    records: ({ secrets }) =>
+      fixtures.members.map(({ key, name, role, emoji, colour }) => ({
+        key,
+        name,
+        role,
+        emoji,
+        colour,
+        ...pinFields(role, secrets),
+      })),
     // Maps an existing record back to its fixture key, so later steps still find ids on a re-run.
     identify: (record) => fixtures.members.find((m) => m.name === record.name)?.key,
   },
@@ -47,7 +55,8 @@ const steps = [
   { collection: "settings", records: () => [{ ...fixtures.settings }] },
   { collection: "routines", records: ({ ids }) => routines.records(ids.members) },
   { collection: "todos", records: (ctx) => require("./todos.js").todoRecords(ctx) },
-  // areas, lists, shop_items and purchases are added by the stories that create those
+  ...require("./shopping.js").steps, // lists come from the migration; items: scripts/seed/shopping.js
+  // routines, todos, areas, lists, shop_items and purchases are added by the stories that create those
   // collections, using fixtures.routines / todos / areas / lists / purchases.
 ];
 

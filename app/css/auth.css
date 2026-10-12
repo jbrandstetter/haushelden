@@ -1,0 +1,128 @@
+/* Governing: SPEC-0001 REQ "Prototype as UI Reference" ("Wer bist du?" profiles and the first-run form, ported
+   from the prototype's index.html; the prototype itself stays untouched), Accessibility Requirements */
+
+.who h1 {
+  text-align: center;
+  font-size: 30px;
+  margin: 30px 0 6px;
+}
+.who > p {
+  text-align: center;
+  color: var(--subtext);
+  margin: 0 0 26px;
+}
+.who .profiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  max-width: 620px;
+  margin: 0 auto;
+}
+.who .profile {
+  border: 0;
+  border-radius: 28px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  padding: 26px 16px 20px;
+  text-align: center;
+  --c: var(--mauve);
+}
+.who .profile .av {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 62px;
+  background: color-mix(in srgb, var(--c) 22%, transparent);
+}
+.who .profile .nm {
+  font-size: 24px;
+  font-weight: 800;
+}
+.who .profile .pr {
+  color: var(--subtext);
+  font-size: 15px;
+  margin-top: 4px;
+}
+.who .profile:active {
+  transform: scale(0.97);
+}
+.who .profiles.adults {
+  margin-top: 14px;
+}
+.who .profiles.adults .profile {
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  border-radius: 22px;
+}
+.who .profiles.adults .av {
+  width: 56px;
+  height: 56px;
+  font-size: 30px;
+  margin: 0;
+  flex: none;
+}
+.who .profiles.adults .nm {
+  font-size: 19px;
+}
+.who .footer-actions {
+  text-align: center;
+  margin-top: 24px;
+}
+
+/* forms: first-run setup, sign-in, invite, PIN, device name */
+.ph {
+  max-width: 520px;
+  margin: 0 auto;
+}
+.ph h1 {
+  font-size: 24px;
+  margin: 6px 0 4px;
+}
+.field {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.field label {
+  font-weight: 650;
+  font-size: 15px;
+}
+.field input {
+  border: 0;
+  border-radius: 10px;
+  background: var(--mantle);
+  padding: 11px 12px;
+  font-size: 17px;
+  width: 100%;
+}
+.field .hint {
+  font-size: 14px;
+  color: var(--subtext);
+}
+.form-error {
+  color: var(--red);
+  font-weight: 650;
+  min-height: 1.4em;
+  margin: 0 0 8px;
+}
+.pin-input {
+  letter-spacing: 0.5em;
+  text-align: center;
+  font-size: 28px;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.btn:disabled {
+  opacity: 0.6;
+}

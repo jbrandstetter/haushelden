@@ -11,6 +11,8 @@ const FILES = [
   "index.html",
   "manifest.json",
   "css/app.css",
+  "css/auth.css",
+  "css/shop.css",
   "icon-180.png",
   "icon-192.png",
   "icon-512.png",
@@ -23,9 +25,12 @@ const FILES = [
   "js/storage.js",
   "js/sse.js",
   "js/pb.js",
+  "js/auth.js",
+  "js/auth-ui.js",
   "js/data.js",
   "js/todos.js",
   "js/router.js",
+  "js/shop.js",
   "js/routes.js",
   "js/app.js",
   "js/screens/home.js",
@@ -33,6 +38,11 @@ const FILES = [
   "js/screens/maskottchen.js",
   "js/screens/eltern.js",
   "js/screens/kind.js",
+  "js/screens/setup.js",
+  "js/screens/anmelden.js",
+  "js/screens/einladung.js",
+  "js/screens/wer.js",
+  "js/screens/shopping.js",
 ];
 
 self.addEventListener("install", (e) => {

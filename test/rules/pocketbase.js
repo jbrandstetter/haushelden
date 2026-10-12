@@ -35,10 +35,10 @@ function dirsArgs(dataDir) {
   ];
 }
 
-async function startPocketBase({ publicDir } = {}) {
+async function startPocketBase({ publicDir, env: extraEnv } = {}) {
   if (!fs.existsSync(BINARY)) throw new Error("PocketBase binary missing: run npm run pb:download");
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "hh-test-"));
-  const env = { PATH: process.env.PATH, HH_MODE: "development" };
+  const env = { PATH: process.env.PATH, HH_MODE: "development", ...extraEnv };
   const upsert = spawnSync(
     BINARY,
     ["superuser", "upsert", SUPERUSER.email, SUPERUSER.password, ...dirsArgs(dataDir)],
@@ -76,10 +76,14 @@ async function startPocketBase({ publicDir } = {}) {
     port,
     output: () => output,
     /** JSON request. Resolves to { status, data } and never throws on HTTP errors. */
-    async api(method, urlPath, { token, body } = {}) {
+    async api(method, urlPath, { token, body, headers } = {}) {
       const res = await fetch(`${base}${urlPath}`, {
         method,
-        headers: { "content-type": "application/json", ...(token ? { authorization: token } : {}) },
+        headers: {
+          "content-type": "application/json",
+          ...(token ? { authorization: token } : {}),
+          ...headers,
+        },
         body: body === undefined ? undefined : JSON.stringify(body),
       });
       const text = await res.text();
