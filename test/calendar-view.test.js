@@ -83,6 +83,8 @@ function mount(data, { me = "papa", store } = {}) {
   Object.defineProperty(globalThis, "localStorage", { value: fake, configurable: true, writable: true });
   try {
     const doc = createDocument();
+    const create = doc.createElement;
+    doc.createElement = (tag) => Object.assign(create(tag), { focus() {} }); // the helper has no focus()
     const view = doc.createElement("div");
     view.ownerDocument = doc;
     eltern.screen(view, {
