@@ -5,7 +5,7 @@
 // Screens for accounts and access (registered by js/screens/{setup,anmelden,einladung,wer}.js), ported from the prototype: first-run setup (`#/setup`), parent sign-in
 // (`#/anmelden`), invite acceptance (`#/einladung/<token>`) and "Wer bist du?" (`#/wer`) with the parent-PIN prompt
 // and "Als Familiengerät einrichten". The logic is in js/auth.js (HH.flow); the screens only draw and call it.
-// All text goes in through textContent, never innerHTML, so names from the data store cannot inject markup.
+// All text goes in through textContent (no HTML parsing), so names from the data store cannot inject markup.
 
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory;
