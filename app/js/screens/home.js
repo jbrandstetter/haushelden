@@ -35,7 +35,12 @@
     panel.append(list);
     view.append(panel);
 
-    return ctx.data.subscribe("members", (members) => {
+    // Entry point to the shopping list (SPEC-0005 REQ "Entry Points"); the kid board, parent view and
+    // "Wer bist du?" screens get the same button when those stories land.
+    const shopEntry = HH.shop.entryButton({ data: ctx.data, who: (ctx.auth.record() || {}).member });
+    view.append(shopEntry.el);
+
+    const offMembers = ctx.data.subscribe("members", (members) => {
       list.textContent = "";
       if (members.length === 0) list.append(el("li", "muted", "Noch keine Mitglieder."));
       for (const m of members) {
@@ -44,5 +49,9 @@
         list.append(item);
       }
     });
+    return () => {
+      offMembers();
+      shopEntry.dispose();
+    };
   };
 })();

@@ -1,0 +1,241 @@
+/* Shopping lists (SPEC-0005); ported from the prototype's shopping styles. Uses the tokens of app.css. */
+.shop {
+  --c: var(--green);
+}
+.shop .top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.shop .top .av {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  background: color-mix(in srgb, var(--c) 22%, transparent);
+  flex: none;
+  border: 0;
+  text-decoration: none;
+}
+.shop .top .hello {
+  flex: 1;
+  min-width: 0;
+}
+.shop .top .hello b {
+  display: block;
+  font-size: 24px;
+  line-height: 1.15;
+}
+.shop .top .hello span {
+  color: var(--subtext);
+  font-size: 15px;
+}
+.shopbtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 620px;
+  margin: 14px auto 0;
+  border: 0;
+  border-radius: 22px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+}
+.shopbtn .ic {
+  font-size: 30px;
+}
+.shopbtn b {
+  display: block;
+  font-size: 18px;
+}
+.shopbtn span {
+  color: var(--subtext);
+  font-size: 14px;
+}
+.ltabs {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 12px;
+  flex-wrap: wrap;
+}
+.ltabs button {
+  flex: 1;
+  border: 0;
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  padding: 12px;
+  font-weight: 800;
+  font-size: 17px;
+}
+.ltabs button[aria-pressed="true"] {
+  background: var(--c);
+  color: var(--on-accent);
+}
+.ltabs small {
+  font-weight: 700;
+  opacity: 0.75;
+  margin-left: 4px;
+}
+.shop .qa {
+  display: flex;
+  gap: 8px;
+}
+.shop .qa input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  padding: 13px 14px;
+  font-size: 17px;
+  outline: none;
+}
+.shop .qa input:focus-visible {
+  outline: 3px solid var(--mauve);
+}
+.shop .qa button {
+  border: 0;
+  border-radius: 14px;
+  background: var(--c);
+  color: var(--on-accent);
+  font-size: 24px;
+  width: 52px;
+  font-weight: 800;
+}
+.shop .qa button:disabled {
+  opacity: 0.5;
+}
+.shop .hint {
+  min-height: 1.4em;
+  margin: 6px 4px 0;
+  font-size: 14px;
+  color: var(--subtext);
+}
+.shop .hint.warn {
+  color: var(--peach);
+  font-weight: 700;
+}
+.shop .whochips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+}
+.shop .whochips button {
+  border: 0;
+  border-radius: 999px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  padding: 8px 14px;
+  font-weight: 700;
+}
+.shop .whochips button[aria-pressed="true"] {
+  background: var(--c);
+  color: var(--on-accent);
+}
+.shop .todos {
+  display: grid;
+  gap: 8px;
+}
+.shop .section {
+  margin-top: 18px;
+}
+.sitem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border-radius: 16px;
+  padding: 10px 12px;
+  box-shadow: var(--shadow);
+}
+.sitem.pending {
+  opacity: 0.75;
+}
+.sitem .cb {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 3px solid color-mix(in srgb, var(--c) 50%, transparent);
+  background: transparent;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.sitem .cb svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0;
+  color: var(--on-accent);
+}
+.sitem.bought .cb {
+  background: var(--c);
+  border-color: var(--c);
+}
+.sitem.bought .cb svg {
+  opacity: 1;
+}
+.sitem.bought .nm {
+  text-decoration: line-through;
+  color: var(--overlay);
+}
+.sitem .nm {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 650;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.sitem .by {
+  font-size: 20px;
+}
+.sitem .x {
+  border: 0;
+  background: transparent;
+  color: var(--overlay);
+  font-size: 20px;
+  padding: 4px 6px;
+}
+.shop .manage {
+  display: grid;
+  gap: 8px;
+}
+.shop .manage .row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.shop .manage input {
+  border: 0;
+  border-radius: 12px;
+  background: var(--mantle);
+  padding: 10px 12px;
+  min-width: 0;
+}
+.shop .manage input.emoji {
+  width: 4.2em;
+  text-align: center;
+}
+.shop .manage input.name {
+  flex: 1;
+}
+.shop .note {
+  font-size: 14px;
+  color: var(--subtext);
+  background: var(--mantle);
+  border-radius: 12px;
+  padding: 10px 12px;
+}

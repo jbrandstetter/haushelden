@@ -76,10 +76,14 @@ async function startPocketBase({ publicDir, env: extraEnv } = {}) {
     port,
     output: () => output,
     /** JSON request. Resolves to { status, data } and never throws on HTTP errors. */
-    async api(method, urlPath, { token, body } = {}) {
+    async api(method, urlPath, { token, body, headers } = {}) {
       const res = await fetch(`${base}${urlPath}`, {
         method,
-        headers: { "content-type": "application/json", ...(token ? { authorization: token } : {}) },
+        headers: {
+          "content-type": "application/json",
+          ...(token ? { authorization: token } : {}),
+          ...headers,
+        },
         body: body === undefined ? undefined : JSON.stringify(body),
       });
       const text = await res.text();

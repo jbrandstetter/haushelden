@@ -49,8 +49,8 @@
     setTimeoutImpl = (...a) => setTimeout(...a),
     backoffMs = [1000, 2000, 5000, 10000, 15000],
   }) {
-    async function request(op, method, path, body) {
-      const headers = { accept: "application/json" };
+    async function request(op, method, path, body, extraHeaders) {
+      const headers = { accept: "application/json", ...extraHeaders };
       const token = getToken();
       if (token) headers.authorization = token;
       if (body !== undefined) headers["content-type"] = "application/json";
@@ -158,7 +158,16 @@
       },
       get: (collection, id) => request("get", "GET", recordPath(collection, id)),
       create: (collection, data) => request("create", "POST", recordPath(collection), data),
-      update: (collection, id, patch) => request("update", "PATCH", recordPath(collection, id), patch),
+      // `seen` (the record version the change was made against) travels as X-HH-Seen: hooks may refuse a stale
+      // change that would undo a sticky field (shopping: bought stays bought).
+      update: (collection, id, patch, { seen } = {}) =>
+        request(
+          "update",
+          "PATCH",
+          recordPath(collection, id),
+          patch,
+          seen ? { "x-hh-seen": seen } : undefined,
+        ),
       async remove(collection, id) {
         await request("delete", "DELETE", recordPath(collection, id));
       },
