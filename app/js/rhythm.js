@@ -109,7 +109,7 @@
   /** "etwa alle 5 Tage · zuletzt vor 4 Tagen" (the server stores rhythm and last day; the app adds the "✨"). */
   function reasonText(rhythm, last, today) {
     const ago = sinceDays(last, today);
-    const agoText = ago <= 0 ? "zuletzt heute" : `zuletzt vor ${dayWord(ago)}`;
+    const agoText = ago <= 0 ? "zuletzt heute" : `zuletzt vor ${ago === 1 ? "1 Tag" : `${ago} Tagen`}`;
     return `etwa alle ${dayWord(rhythm)} · ${agoText}`;
   }
 
