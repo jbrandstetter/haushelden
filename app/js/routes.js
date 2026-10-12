@@ -22,6 +22,7 @@
     ["einladung", "js/screens/einladung.js"], // invite acceptance (#11)
     ["wer", "js/screens/wer.js"], // "Wer bist du?" (#11)
     ["einkauf", "js/screens/shopping.js"], // shopping lists (#/einkauf/<member id>)
+    ["gelernt", "js/screens/gelernt.js"], // learned items, parents (SPEC-0005)
   ];
   if (typeof module === "object" && module.exports) module.exports = { ROUTES };
   else (root.HH = root.HH || {}).ROUTES = ROUTES;
