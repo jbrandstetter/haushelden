@@ -23,12 +23,14 @@ const FILES = [
   "js/sse.js",
   "js/pb.js",
   "js/data.js",
+  "js/todos.js",
   "js/router.js",
   "js/routes.js",
   "js/app.js",
   "js/screens/home.js",
   "js/screens/routinen.js",
   "js/screens/maskottchen.js",
+  "js/screens/eltern.js",
 ];
 
 self.addEventListener("install", (e) => {
