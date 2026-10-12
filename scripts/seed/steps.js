@@ -6,14 +6,25 @@
 // `ctx.ids` holds the ids created by earlier steps (ctx.ids.members.papa, ...).
 
 const fixtures = require("./fixtures.js");
+<<<<<<< HEAD
 const routines = require("./routines.js");
+=======
+const { pinFields } = require("./accounts.js"); // fake PIN for the seeded parents (accounts story)
+>>>>>>> d5c401a (feat(accounts): /api/hh setup, invite, device enroll, PIN and revoke routes)
 
 const steps = [
   {
     collection: "members",
     key: "key",
-    records: () =>
-      fixtures.members.map(({ key, name, role, emoji, colour }) => ({ key, name, role, emoji, colour })),
+    records: ({ secrets }) =>
+      fixtures.members.map(({ key, name, role, emoji, colour }) => ({
+        key,
+        name,
+        role,
+        emoji,
+        colour,
+        ...pinFields(role, secrets),
+      })),
     // Maps an existing record back to its fixture key, so later steps still find ids on a re-run.
     identify: (record) => fixtures.members.find((m) => m.name === record.name)?.key,
   },

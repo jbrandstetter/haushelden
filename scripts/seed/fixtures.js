@@ -28,6 +28,7 @@ const settings = { tz: "", mascot: { pet: "fox" }, auto_refill: true };
 const defaultSecrets = {
   parentPassword: "change-me-dev-parent-password",
   deviceSecret: "change-me-dev-device-secret-0123456789",
+  parentPin: "246810", // fake 6-digit PIN of the seeded parents (HH_DEV_PARENT_PIN)
 };
 
 const routines = [
