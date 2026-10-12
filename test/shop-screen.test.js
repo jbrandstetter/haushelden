@@ -191,3 +191,69 @@ test("scenario: 'milch' while 'Milch' is open shows a friendly message and creat
   assert.equal(data.calls.create.length, 0);
   assert.equal(view.all((e) => e.has("hint"))[0].textContent, "Das steht schon auf der Liste.");
 });
+
+// ---- purchase-history additions (SPEC-0005 REQ "Automatic Refill", "Suggestions While Typing") ---------------
+
+function withHistory(data, { purchases = [], settings = [] } = {}) {
+  const base = data.subscribe;
+  data.subscribe = (c, cb) => {
+    if (c === "purchases") return (cb(purchases), () => {});
+    if (c === "settings") return (cb(settings), () => {});
+    return base(c, cb);
+  };
+  return data;
+}
+const buys = (list, name, days) => days.map((day) => ({ list, key: name.toLowerCase(), name, day }));
+
+test("scenario: Milk comes back - the automatic item on the list shows its reason", () => {
+  const auto = {
+    id: "9",
+    list: "food",
+    name: "Milch",
+    auto: true,
+    auto_rhythm: 5,
+    auto_last: "2026-10-08",
+    bought: "",
+  };
+  const { view } = open({ data: fakeData([auto]) });
+  const nm = view.all((e) => e.has("nm"))[0];
+  assert.equal(nm.textContent, "Milch✨ automatisch · etwa alle 5 Tage · zuletzt vor 4 Tagen");
+});
+
+test("a parent sees frequent items as suggestions on an empty field, but not those already on the list", () => {
+  const purchases = [
+    ...buys("food", "Kaffee", ["2026-09-01", "2026-09-08", "2026-09-15"]),
+    ...buys("food", "Milch", ["2026-09-01", "2026-09-05"]), // Milch is open on the list
+    ...buys("dm", "Seife", ["2026-09-01", "2026-09-05"]), // another list
+  ];
+  const { view } = open({ data: withHistory(fakeData(items), { purchases }) });
+  const chips = view.all((e) => e.has("chip")).map((c) => c.textContent);
+  assert.deepEqual(chips, ["Kaffee"]);
+});
+
+test("with automatic refill off a due item is offered as a marked suggestion", () => {
+  const purchases = buys("food", "Shampoo", ["2026-08-01", "2026-09-01", "2026-10-01"]); // rhythm 31, due 2026-10-31
+  const off = open({
+    data: withHistory(fakeData(items), { purchases, settings: [{ id: "s", auto_refill: false }] }),
+  });
+  assert.deepEqual(
+    off.view.all((e) => e.has("chip")).map((c) => c.textContent),
+    ["Shampoo"],
+  );
+  const purchasesDue = buys("food", "Shampoo", ["2026-07-01", "2026-08-01", "2026-09-01"]); // rhythm 31, due 2026-10-01
+  const due = open({
+    data: withHistory(fakeData(items), {
+      purchases: purchasesDue,
+      settings: [{ id: "s", auto_refill: false }],
+    }),
+  });
+  assert.deepEqual(
+    due.view.all((e) => e.has("chip")).map((c) => c.textContent),
+    ["⏰ Shampoo"],
+  );
+});
+
+test("a device account gets no purchase history and therefore no suggestions", () => {
+  const { view } = open({ collectionName: "devices", args: ["kid1"] });
+  assert.equal(view.all((e) => e.has("chip")).length, 0);
+});
