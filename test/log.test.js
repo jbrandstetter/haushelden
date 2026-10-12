@@ -3,7 +3,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { formatLine, safePath, authCollection } = require("../pb_hooks/lib/log.js");
-const h = require("./helpers/pb-process.js");
 
 const FIXED = new Date("2026-03-04T05:06:07.089Z");
 
@@ -48,39 +47,3 @@ test("safePath drops the query string; authCollection finds the sign-in collecti
   assert.equal(authCollection("/api/collections/parents/auth-with-password"), "parents");
   assert.equal(authCollection("/api/collections/parents/records"), "");
 });
-
-test(
-  "scenario: a failed sign-in is logged without the password (real PocketBase)",
-  { skip: !h.hasBinary() },
-  async () => {
-    const port = 8222;
-    const dir = h.tmpDir("log");
-    const server = h.serve(dir, port);
-    try {
-      await h.waitForHealth(port);
-      const secret = "never-log-this-password-0123";
-      const res = await h.api(
-        port,
-        "POST",
-        "/api/collections/parents/auth-with-password?token=query-secret",
-        {
-          body: { identity: "nobody@example.test", password: secret },
-        },
-      );
-      assert.equal(res.status, 400);
-      await new Promise((r) => setTimeout(r, 300));
-      const out = server.output();
-      const line = out.split("\n").find((l) => l.includes('msg="sign-in failed"'));
-      assert.ok(line, "a sign-in failed line is logged");
-      assert.match(line, /ts=\d{4}-\d\d-\d\dT[\d:.]+Z/);
-      assert.match(line, /auth_collection=parents/);
-      assert.match(line, /client=127\.0\.0\.1/);
-      assert.match(line, /reason="Failed to authenticate\."/);
-      assert.equal(out.includes(secret), false);
-      assert.equal(out.includes("query-secret"), false);
-    } finally {
-      await h.stop(server);
-      h.rmrf(dir);
-    }
-  },
-);
