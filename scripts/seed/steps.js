@@ -46,7 +46,8 @@ const steps = [
   },
   { collection: "settings", records: () => [{ ...fixtures.settings }] },
   { collection: "routines", records: ({ ids }) => routines.records(ids.members) },
-  // todos, areas, lists, shop_items and purchases are added by the stories that create those
+  { collection: "todos", records: (ctx) => require("./todos.js").todoRecords(ctx) },
+  // areas, lists, shop_items and purchases are added by the stories that create those
   // collections, using fixtures.routines / todos / areas / lists / purchases.
 ];
 

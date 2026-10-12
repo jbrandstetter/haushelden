@@ -16,6 +16,7 @@
     ["", "js/screens/home.js"], // start page: household day and live member list (shell and sync check)
     ["routinen", "js/screens/routinen.js"],
     ["maskottchen", "js/screens/maskottchen.js"],
+    ["eltern", "js/screens/eltern.js"], // parents' to-dos, list mode (SPEC-0003)
   ];
   if (typeof module === "object" && module.exports) module.exports = { ROUTES };
   else (root.HH = root.HH || {}).ROUTES = ROUTES;
