@@ -10,7 +10,7 @@
   const HH = (window.HH = window.HH || {});
   HH.screens = HH.screens || {};
 
-  // ---- auth token (sign-in screens arrive with the authentication stories) -------------------------------
+  // ---- auth session (token + record); the sign-in decisions live in js/auth.js (HH.flow) ------------------
   const AUTH_KEY = "hh.auth";
   const readAuth = () => {
     try {
@@ -23,15 +23,23 @@
     token: () => (readAuth() || {}).token || null,
     record: () => (readAuth() || {}).record || null,
     signedIn: () => !!(readAuth() || {}).token,
-    set(token, record) {
+    async set(token, record) {
+      // Another principal (sign-in, PIN, back to the device) starts from a clean mirror: what one may read must
+      // not stay readable for the next. Unsent changes are sent first, best effort. A token refresh of the same
+      // principal changes nothing else.
+      const current = readAuth();
+      const other = !current || !current.record || current.record.id !== record.id;
+      if (started && other) await HH.app.settle();
       try {
         localStorage.setItem(AUTH_KEY, JSON.stringify({ token, record }));
       } catch (err) {
         console.warn("auth: could not persist the session", { message: String(err) });
       }
-      return HH.app.connect();
+      armPinTimer();
+      if (started && other) return HH.app.connect();
     },
     async clear() {
+      await HH.app.settle();
       try {
         localStorage.removeItem(AUTH_KEY);
       } catch {
@@ -40,6 +48,50 @@
       await HH.app.disconnect();
     },
   };
+
+  // The enrolled device's own credentials (ADR-0003): kept apart from the session, so the device signs in again
+  // when a parent's session ends. Only this device holds them; they are never shown.
+  const DEVICE_KEY = "hh.device";
+  HH.deviceStore = {
+    get() {
+      try {
+        return JSON.parse(localStorage.getItem(DEVICE_KEY)) || null;
+      } catch {
+        return null;
+      }
+    },
+    set(creds) {
+      try {
+        localStorage.setItem(DEVICE_KEY, JSON.stringify(creds));
+      } catch (err) {
+        console.warn("auth: could not persist the device", { message: String(err) });
+      }
+    },
+    clear() {
+      try {
+        localStorage.removeItem(DEVICE_KEY);
+      } catch {
+        // nothing persisted
+      }
+    },
+  };
+  let started = false;
+
+  // A parent session on a family device ends after its 15 minutes (SPEC-0001 REQ "Kid Access on Enrolled
+  // Devices"): back to the device's own session and to "Wer bist du?".
+  let pinTimer = null;
+  function armPinTimer() {
+    clearTimeout(pinTimer);
+    if (!HH.flow || HH.flow.kind() !== "pin") return;
+    const left = HH.authflow.pinSecondsLeft({ token: HH.auth.token() });
+    pinTimer = setTimeout(
+      () =>
+        HH.flow.backToDevice().then(() => {
+          location.hash = "#/wer";
+        }),
+      left * 1000,
+    );
+  }
 
   // ---- household clock ------------------------------------------------------------------------------------
   // The time zone comes from the settings record (override) or GET /api/hh/config (HH_TZ), cached for offline.
@@ -105,6 +157,19 @@
     HH.app.rerender();
   }
 
+  /** Sends unsent changes (best effort) and drops the mirror, before another principal takes over. */
+  async function settle() {
+    if (!data) return;
+    try {
+      await data.flush();
+    } catch (err) {
+      console.warn("auth: unsent changes could not be sent before the session changed", {
+        message: String(err),
+      });
+    }
+    await disconnect();
+  }
+
   async function disconnect() {
     while (offTz.length) offTz.pop()();
     if (transport) transport.close();
@@ -121,6 +186,7 @@
     data: null,
     connect,
     disconnect,
+    settle,
     rerender: () => router && router.render(),
   };
 
@@ -139,6 +205,24 @@
 
   async function start() {
     storage = await HH.storage.openStorage(window.indexedDB);
+    HH.flow = HH.authflow.createAuthFlow({
+      session: {
+        get: () => (HH.auth.signedIn() ? { token: HH.auth.token(), record: HH.auth.record() } : null),
+        set: (token, record) => HH.auth.set(token, record),
+        clear: () => HH.auth.clear(),
+      },
+      deviceStore: HH.deviceStore,
+    });
+    const launched = await HH.flow.launch(); // refreshes the session; a removed device or revoked parent ends up signed out
+    started = true;
+    if (launched.state === "pin") armPinTimer();
+    // Runs before the router's own hashchange handler: nobody sees a screen they may not open.
+    const applyGuard = () => {
+      const target = HH.authflow.guard(location.hash, HH.flow.kind());
+      if (target) history.replaceState(null, "", target);
+    };
+    applyGuard();
+    window.addEventListener("hashchange", applyGuard);
     router = HH.router.createRouter({
       routes: HH.ROUTES,
       view: document.getElementById("view"),
@@ -149,7 +233,12 @@
     window.addEventListener("online", () => data && data.setOnline(true) && data.flush());
     window.addEventListener("offline", () => data && data.setOnline(false));
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState !== "visible" || !data) return;
+      if (document.visibilityState !== "visible") return;
+      if (HH.flow.kind())
+        HH.flow.launch().then(() => {
+          if (!HH.flow.kind()) location.hash = "#/anmelden"; // revoked or removed while the app was in the background
+        });
+      if (!data) return;
       transport.reconnect();
       data.refreshAll().then(() => data.flush());
     });

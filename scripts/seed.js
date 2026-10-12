@@ -89,6 +89,7 @@ async function main() {
     secrets: {
       parentPassword: config.HH_DEV_PARENT_PASSWORD || defaultSecrets.parentPassword,
       deviceSecret: config.HH_DEV_DEVICE_SECRET || defaultSecrets.deviceSecret,
+      parentPin: config.HH_DEV_PARENT_PIN || defaultSecrets.parentPin,
     },
   });
   console.log("Seed done (fake household; collections that do not exist yet were skipped).");
