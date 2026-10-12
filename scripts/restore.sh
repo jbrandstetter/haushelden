@@ -9,14 +9,13 @@
 # "<data-dir>.before-restore-<UTC time>" first, never deleted. Stop PocketBase before restoring over live data.
 set -uo pipefail
 
-log() {
-  local level="$1" msg="$2" out=2
+log() { # level message [key=value ...]
+  local level="$1" msg="$2" line
   shift 2
-  [ "$level" = info ] && out=1
-  printf 'ts=%s level=%s component=restore msg="%s"' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$level" "$msg"
-  for kv in "$@"; do printf ' %s' "$kv"; done
-  printf '\n'
-} >&"$out"
+  line="$(printf 'ts=%s level=%s component=restore msg="%s"' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$level" "$msg")"
+  for kv in "$@"; do line="$line $kv"; done
+  if [ "$level" = info ]; then printf '%s\n' "$line"; else printf '%s\n' "$line" >&2; fi
+}
 
 snapshot="${1:-}"
 dest="${2:-}"

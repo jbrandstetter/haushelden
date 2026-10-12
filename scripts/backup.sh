@@ -12,13 +12,12 @@
 set -uo pipefail
 
 log() { # level message [key=value ...]
-  local level="$1" msg="$2" out=2
+  local level="$1" msg="$2" line
   shift 2
-  [ "$level" = info ] && out=1
-  printf 'ts=%s level=%s component=backup msg="%s"' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$level" "$msg"
-  for kv in "$@"; do printf ' %s' "$kv"; done
-  printf '\n'
-} >&"$out"
+  line="$(printf 'ts=%s level=%s component=backup msg="%s"' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$level" "$msg")"
+  for kv in "$@"; do line="$line $kv"; done
+  if [ "$level" = info ]; then printf '%s\n' "$line"; else printf '%s\n' "$line" >&2; fi
+}
 
 fail() { # message [key=value ...]
   local msg="$1"
