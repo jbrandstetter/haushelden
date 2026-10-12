@@ -1,0 +1,32 @@
+# Governing: SPEC-0007 REQ "Container" (own non-root user, init-managed, restart within 10 seconds),
+# REQ "Logging" (stdout goes to the journal), ADR-0004 (values come from the env file, not from this repository)
+#
+# Template. Install as /etc/systemd/system/haushelden.service from the provisioning code. The paths and the
+# service user below are examples; the env file holds the HH_* keys (see .env.example) and is readable by the
+# service user only (mode 0600).
+[Unit]
+Description=Haushelden (PocketBase)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=haushelden
+Group=haushelden
+EnvironmentFile=/etc/haushelden/haushelden.env
+WorkingDirectory=/opt/haushelden
+# Listens on HH_LISTEN (loopback by default); the reverse proxy terminates TLS (ADR-0002).
+ExecStart=/opt/haushelden/bin/pocketbase serve --http=${HH_LISTEN} --dir=${HH_DATA_DIR} --migrationsDir=/opt/haushelden/pb_migrations --hooksDir=/opt/haushelden/pb_hooks --publicDir=/opt/haushelden/app
+Restart=always
+RestartSec=3
+SyslogIdentifier=haushelden
+
+# Hardening: unprivileged, no new privileges, only the data directory writable.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/haushelden
+MemoryMax=512M
+
+[Install]
+WantedBy=multi-user.target
