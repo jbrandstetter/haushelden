@@ -11,6 +11,7 @@ const FILES = [
   "index.html",
   "manifest.json",
   "css/app.css",
+  "css/shop.css",
   "icon-180.png",
   "icon-192.png",
   "icon-512.png",
@@ -25,12 +26,14 @@ const FILES = [
   "js/data.js",
   "js/todos.js",
   "js/router.js",
+  "js/shop.js",
   "js/routes.js",
   "js/app.js",
   "js/screens/home.js",
   "js/screens/routinen.js",
   "js/screens/maskottchen.js",
   "js/screens/eltern.js",
+  "js/screens/shopping.js",
 ];
 
 self.addEventListener("install", (e) => {

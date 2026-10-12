@@ -176,9 +176,11 @@
         }
         // update: apply the collection's per-field merge rules against the current server record
         let patch = entry.data;
+        let seen = entry.base && entry.base.updated; // the version this change was made against
         const rules = registry.rulesFor(collection);
         if (Object.keys(patch).some((f) => rules[f])) {
           const server = await transport.get(collection, recordId);
+          seen = server.updated; // the merge below judged against this version; the server re-checks it
           const resolved = merge.resolveUpdate({ patch, base: entry.base, server, rules });
           if (resolved.dropped.length) {
             logger.info?.("sync: concurrent change kept", {
@@ -190,7 +192,7 @@
           patch = resolved.patch;
           if (Object.keys(patch).length === 0) return { status: "ok", record: server };
         }
-        return { status: "ok", record: await transport.update(collection, recordId, patch) };
+        return { status: "ok", record: await transport.update(collection, recordId, patch, { seen }) };
       } catch (err) {
         const wrapped = wrap(err, context);
         if (isKind(err, KIND.NETWORK)) {
