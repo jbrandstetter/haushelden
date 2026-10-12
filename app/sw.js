@@ -31,16 +31,13 @@ const FILES = [
   "js/routes.js",
   "js/app.js",
   "js/screens/home.js",
-<<<<<<< HEAD
   "js/screens/routinen.js",
   "js/screens/maskottchen.js",
   "js/screens/eltern.js",
-=======
   "js/screens/setup.js",
   "js/screens/anmelden.js",
   "js/screens/einladung.js",
   "js/screens/wer.js",
->>>>>>> 4efa1f6 (feat(accounts): sign-in flow, setup/sign-in/invite/Wer-bist-du screens, device enrollment and PIN prompt)
 ];
 
 self.addEventListener("install", (e) => {
