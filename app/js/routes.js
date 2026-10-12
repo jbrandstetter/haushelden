@@ -14,9 +14,16 @@
   "use strict";
   const ROUTES = [
     ["", "js/screens/home.js"], // start page: household day and live member list (shell and sync check)
+<<<<<<< HEAD
     ["routinen", "js/screens/routinen.js"],
     ["maskottchen", "js/screens/maskottchen.js"],
     ["eltern", "js/screens/eltern.js"], // parents' to-dos, list mode (SPEC-0003)
+=======
+    ["setup", "js/screens/setup.js"], // first-run setup (#11)
+    ["anmelden", "js/screens/anmelden.js"], // parent sign-in (#11)
+    ["einladung", "js/screens/einladung.js"], // invite acceptance (#11)
+    ["wer", "js/screens/wer.js"], // "Wer bist du?" (#11)
+>>>>>>> 4efa1f6 (feat(accounts): sign-in flow, setup/sign-in/invite/Wer-bist-du screens, device enrollment and PIN prompt)
   ];
   if (typeof module === "object" && module.exports) module.exports = { ROUTES };
   else (root.HH = root.HH || {}).ROUTES = ROUTES;

@@ -11,6 +11,7 @@ const FILES = [
   "index.html",
   "manifest.json",
   "css/app.css",
+  "css/auth.css",
   "icon-180.png",
   "icon-192.png",
   "icon-512.png",
@@ -22,15 +23,24 @@ const FILES = [
   "js/storage.js",
   "js/sse.js",
   "js/pb.js",
+  "js/auth.js",
+  "js/auth-ui.js",
   "js/data.js",
   "js/todos.js",
   "js/router.js",
   "js/routes.js",
   "js/app.js",
   "js/screens/home.js",
+<<<<<<< HEAD
   "js/screens/routinen.js",
   "js/screens/maskottchen.js",
   "js/screens/eltern.js",
+=======
+  "js/screens/setup.js",
+  "js/screens/anmelden.js",
+  "js/screens/einladung.js",
+  "js/screens/wer.js",
+>>>>>>> 4efa1f6 (feat(accounts): sign-in flow, setup/sign-in/invite/Wer-bist-du screens, device enrollment and PIN prompt)
 ];
 
 self.addEventListener("install", (e) => {

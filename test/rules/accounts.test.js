@@ -378,6 +378,30 @@ describe("accounts: invites, devices, PIN", () => {
     });
   });
 
+  describe("seeded PIN", () => {
+    it("a PIN hashed by the seed helper verifies on the server (same hash format and algorithm)", async () => {
+      const members = (await pb.api("GET", rec("members"), { token: pb.superToken })).data.items;
+      const mama = members.find((m) => m.name === "Test-Mama");
+      await pb.api("PATCH", rec("members", mama.id), {
+        token: pb.superToken,
+        body: { pin_hash: hashPin(nodeSecurity, "135790") },
+      });
+      const { res, secret: s } = await enroll("Seed-iPad");
+      const devToken = (await deviceSignIn(res.data.email, s)).data.token;
+      const ok = await pb.api("POST", "/api/hh/pin", {
+        token: devToken,
+        body: { member: mama.id, pin: "135790" },
+      });
+      assert.equal(ok.status, 200, JSON.stringify(ok.data));
+      assert.equal(ok.data.record.member, mama.id);
+      const bad = await pb.api("POST", "/api/hh/pin", {
+        token: devToken,
+        body: { member: mama.id, pin: "135791" },
+      });
+      assert.equal(bad.status, 401);
+    });
+  });
+
   describe("revoking sessions", () => {
     it("rejects every later request from the revoked account's tokens", async () => {
       const mama = await pb.signIn("parents", "test-mama@example.test", PW2);
