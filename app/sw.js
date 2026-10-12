@@ -19,6 +19,7 @@ const FILES = [
   "js/errors.js",
   "js/dates.js",
   "js/routines.js",
+  "js/board.js",
   "js/merge.js",
   "js/outbox.js",
   "js/storage.js",
@@ -28,6 +29,7 @@ const FILES = [
   "js/auth-ui.js",
   "js/data.js",
   "js/todos.js",
+  "js/areas.js",
   "js/router.js",
   "js/shop.js",
   "js/rhythm.js",
@@ -38,12 +40,14 @@ const FILES = [
   "js/screens/routinen.js",
   "js/screens/maskottchen.js",
   "js/screens/eltern.js",
+  "js/screens/kind.js",
   "js/screens/setup.js",
   "js/screens/anmelden.js",
   "js/screens/einladung.js",
   "js/screens/wer.js",
   "js/screens/shopping.js",
   "js/screens/gelernt.js",
+  "js/screens/bereiche.js",
 ];
 
 self.addEventListener("install", (e) => {

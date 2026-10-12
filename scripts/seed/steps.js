@@ -54,6 +54,7 @@ const steps = [
   },
   { collection: "settings", records: () => [{ ...fixtures.settings }] },
   { collection: "routines", records: ({ ids }) => routines.records(ids.members) },
+  { collection: "areas", records: () => [], identify: require("./areas.js").identify }, // starters come from the migration
   { collection: "todos", records: (ctx) => require("./todos.js").todoRecords(ctx) },
   ...require("./learning.js").steps, // DEV-only fake purchase history (before the shopping items)
   ...require("./shopping.js").steps, // lists come from the migration; items: scripts/seed/shopping.js
