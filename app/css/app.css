@@ -778,6 +778,87 @@ canvas#confetti {
   color: var(--red);
 }
 
+/* ---- #/einstellungen (parents' settings, #12) ---- */
+.einstellungen .member,
+.einstellungen .device {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 8px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+.einstellungen .device {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+.einstellungen input[type="text"],
+.einstellungen input[type="password"] {
+  width: 100%;
+  font: inherit;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 6px;
+  background: var(--mantle);
+  color: var(--text);
+}
+.einstellungen .emo {
+  text-align: center;
+  font-size: 22px;
+}
+.einstellungen .swatches,
+.einstellungen .pets,
+.einstellungen .links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+}
+.einstellungen .swatches button {
+  width: 44px;
+  height: 44px;
+  border: 3px solid transparent;
+  border-radius: 50%;
+}
+.einstellungen .swatches button[aria-pressed="true"] {
+  border-color: var(--text);
+}
+.einstellungen .pets button {
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--mantle);
+}
+.einstellungen .pets button[aria-pressed="true"] {
+  background: var(--mauve);
+}
+.einstellungen button.danger {
+  border: 0;
+  border-radius: 12px;
+  min-height: 44px;
+  padding: 6px 12px;
+  font: inherit;
+  font-weight: 650;
+  background: var(--mantle);
+  color: var(--red);
+}
+.einstellungen .confirm {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.einstellungen .confirm p {
+  flex-basis: 100%;
+  margin: 0;
+}
+.rt-ok[data-role="status"] {
+  color: var(--green);
+}
+
 /* calendar mode of the parents' view (SPEC-0004, #/eltern); ported from the prototype's .mcal block */
 .eltern .modebar {
   margin-bottom: 12px;
