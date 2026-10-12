@@ -31,6 +31,7 @@ const FILES = [
   "js/todos.js",
   "js/areas.js",
   "js/settings.js",
+  "js/calendar.js",
   "js/router.js",
   "js/shop.js",
   "js/rhythm.js",

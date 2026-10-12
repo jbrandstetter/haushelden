@@ -1,30 +1,32 @@
 // Governing: ADR-0001 (reads and writes go through the data layer; offline creates use its outbox),
 // SPEC-0003 REQ "To-dos", REQ "Quick Add", REQ "List Grouping", REQ "Editing", REQ "Areas of Responsibility",
-// REQ "Parents' Routines Today", REQ "Kids' Progress Glance", SPEC-0001 REQ "Prototype as UI Reference"
-// (prototype renderAdult, list mode), REQ "Household Day and Time Zone"
+// REQ "Parents' Routines Today", REQ "Kids' Progress Glance", SPEC-0004 REQ "Mode Switch", REQ "Month View",
+// REQ "Day Agenda", REQ "Entry Sources", REQ "Adding on a Selected Day", REQ "Area Filter in Calendar",
+// SPEC-0001 REQ "Prototype as UI Reference" (prototype renderAdult), REQ "Household Day and Time Zone"
 //
-// The parents' view (`#/eltern`), list mode. `buildView` turns a plain model into DOM and is the part tests
+// The parents' view (`#/eltern`), list mode and calendar mode. `buildView` turns a plain model into DOM and is the part tests
 // render with a fake document; the screen function at the bottom wires it to the data layer.
 //
 // Extension points for the follow-up stories (add to the marked places, do not restructure):
 //  - areas (SPEC-0003 "Areas of Responsibility"): done by the areas story (#17): the panel, the filter bar, the
 //    editor's area row and quick add into the selected area. The calendar (SPEC-0004) filters by
 //    `state.areaFilter` too.
-//  - calendar mode (SPEC-0004): `state.mode` is "list"; add a mode switch at the marked comment, render the
-//    calendar instead of `listSections`, and keep `quickAdd` shared.
+//  - calendar mode (SPEC-0004): done by the calendar story (#18): `state.mode` is "list" or "calendar"; the mode
+//    switch, `calendarSection` (month grid + day agenda, reusing `row`/`editor`) and the selected-day quick add.
 
 (function (root, factory) {
   const api = factory(
     typeof module === "object" && module.exports ? require("../todos.js") : root.HH.todos,
     typeof module === "object" && module.exports ? require("../dates.js") : root.HH.dates,
     typeof module === "object" && module.exports ? require("../areas.js") : root.HH.areas,
+    typeof module === "object" && module.exports ? require("../calendar.js") : root.HH.calendar,
   );
   if (typeof module === "object" && module.exports) module.exports = api;
   else {
     root.HH.eltern = api;
     root.HH.screens.eltern = api.screen;
   }
-})(typeof self !== "undefined" ? self : this, function (T, dates, A) {
+})(typeof self !== "undefined" ? self : this, function (T, dates, A, C) {
   "use strict";
 
   function h(doc, tag, className, text, attrs) {
@@ -46,6 +48,7 @@
     const { state, today, members, me } = m;
     const other = T.parentMembers(members).find((p) => p.id !== me);
     const area = state.areaFilter && m.areas.find((x) => x.id === state.areaFilter);
+    const calendar = state.mode === "calendar";
     const frag = doc.createDocumentFragment();
 
     const form = h(doc, "form", "qa", undefined, { "data-role": "quick-add" });
@@ -53,7 +56,7 @@
       type: "text",
       "data-key": "quick-title",
       maxlength: String(T.TITLE_MAX),
-      placeholder: `Neue Aufgabe${area ? ` für ${area.name}` : ""}…`,
+      placeholder: `Neue Aufgabe${area ? ` für ${area.name}` : ""}${calendar ? ` am ${selectedDayLabel(selectedDay(m))}` : ""}…`,
       autocomplete: "off",
       "aria-label": "Neue Aufgabe",
     });
@@ -66,11 +69,14 @@
       a.add(input.value);
     });
 
+    // In calendar mode the selected day is the due date (SPEC-0004 "Adding on a Selected Day"): no due chips.
     const dueRow = h(doc, "div", "chips", undefined, { "data-role": "quick-due" });
-    for (const [value, label] of T.dueOptions(today).slice(0, 3)) {
-      dueRow.append(
-        chip(doc, label, (state.addDue || "") === value, () => a.setAddDue(value), { "data-due": value }),
-      );
+    if (!calendar) {
+      for (const [value, label] of T.dueOptions(today).slice(0, 3)) {
+        dueRow.append(
+          chip(doc, label, (state.addDue || "") === value, () => a.setAddDue(value), { "data-due": value }),
+        );
+      }
     }
     const whoRow = h(doc, "div", "chips", undefined, { "data-role": "quick-who" });
     whoRow.append(
@@ -88,8 +94,34 @@
         "data-who": "parents",
       }),
     );
-    frag.append(form, dueRow, whoRow);
+    frag.append(form);
+    if (!calendar) frag.append(dueRow);
+    frag.append(whoRow);
     return frag;
+  }
+
+  /** The calendar's selected day (SPEC-0004): today until a parent taps another day. */
+  const selectedDay = (m) => m.state.calDay || m.today;
+  /** "Do., 15.10." for the quick-add placeholder. */
+  function selectedDayLabel(day) {
+    const [, month, d] = day.split("-").map(Number);
+    return `${dates.WD[dates.weekdayOfKey(day)]}., ${d}.${month}.`;
+  }
+
+  /** The Liste | Kalender switch (SPEC-0004 "Mode Switch"). */
+  function modeSwitch(doc, m, a) {
+    const seg = h(doc, "div", "seg2", undefined, {
+      "data-role": "mode-switch",
+      role: "group",
+      "aria-label": "Ansicht",
+    });
+    for (const [mode, label] of [
+      ["list", "Liste"],
+      ["calendar", "Kalender"],
+    ]) {
+      seg.append(chip(doc, label, m.state.mode === mode, () => a.setMode(mode), { "data-mode": mode }));
+    }
+    return seg;
   }
 
   /** The inline editor of one to-do (SPEC-0003 "Editing"). */
@@ -229,6 +261,96 @@
     return frag;
   }
 
+  /** One routine entry of the day agenda: emoji, time, title, owner and hint (not tickable, SPEC-0002 owns ticks). */
+  function eventRow(doc, e) {
+    const line = h(doc, "div", "todo ev", undefined, { "data-event": e.id || "" });
+    line.setAttribute("style", `--ec:var(--${e.colour})`);
+    const tx = h(doc, "div", "tx");
+    const tt = h(doc, "div", "tt");
+    if (e.time) tt.append(h(doc, "span", "time", e.time));
+    tt.append(doc.createTextNode(e.title));
+    tx.append(tt, h(doc, "div", "meta", e.hint ? `${e.owner} · ${e.hint}` : e.owner));
+    line.append(h(doc, "div", "evi", e.emoji, { "aria-hidden": "true" }), tx);
+    return line;
+  }
+
+  /**
+   * Calendar mode (SPEC-0004): the month grid with member-coloured markers, then the selected day's agenda. The
+   * agenda's to-do rows are the list view's `row`, so completing and editing work exactly as there.
+   */
+  function calendarSection(doc, m, a) {
+    const { state, today, members } = m;
+    const sel = selectedDay(m);
+    const mi = state.calMonth == null ? C.monthIndex(sel) : state.calMonth;
+    const grid = C.monthGrid(mi);
+    const source = { todos: m.todos, routines: m.routines || [], members, areaFilter: state.areaFilter };
+    const frag = doc.createDocumentFragment();
+
+    const head = h(doc, "div", "calhead", undefined, { "data-role": "cal-head" });
+    const nav = (label, aria, role, onClick) => {
+      const b = h(doc, "button", "", label, { type: "button", "data-role": role });
+      if (aria) b.setAttribute("aria-label", aria);
+      b.addEventListener("click", onClick);
+      return b;
+    };
+    head.append(
+      nav("‹", "Voriger Monat", "cal-prev", () => a.shiftMonth(-1)),
+      h(doc, "b", "", grid.title, { "data-role": "cal-title", "aria-live": "polite" }),
+      nav("Heute", "", "cal-today", () => a.goToday()),
+      nav("›", "Nächster Monat", "cal-next", () => a.shiftMonth(1)),
+    );
+    frag.append(head);
+
+    const mcal = h(doc, "div", "mcal", undefined, { "data-role": "month-grid" });
+    for (const wd of dates.WD) mcal.append(h(doc, "div", "wd", wd));
+    for (let i = 0; i < grid.leading; i++)
+      mcal.append(h(doc, "span", "pad", undefined, { "aria-hidden": "true" }));
+    for (const day of grid.days) {
+      const entries = C.dayEntries(day, source);
+      const colours = C.markerColours(entries, members);
+      const cls = [day === today ? "today" : "", day === sel ? "sel" : "", day < today ? "past" : ""]
+        .filter(Boolean)
+        .join(" ");
+      const count = entries.events.length + entries.todos.length;
+      const b = h(doc, "button", cls, undefined, {
+        type: "button",
+        "data-day": day,
+        "aria-pressed": String(day === sel),
+        "aria-label": `${dates.WDL[dates.weekdayOfKey(day)]}, ${C.dayLong(day)}${count ? `, ${count} ${count === 1 ? "Eintrag" : "Einträge"}` : ""}`,
+      });
+      b.append(h(doc, "span", "n", String(Number(day.slice(8))), { "aria-hidden": "true" }));
+      const dots = h(doc, "span", "dots", undefined, { "aria-hidden": "true" });
+      for (const c of colours) {
+        const dot = h(doc, "i", "", undefined, { "data-colour": c });
+        dot.setAttribute("style", `background:var(--${c})`);
+        dots.append(dot);
+      }
+      b.append(dots);
+      b.addEventListener("click", () => a.selectDay(day));
+      mcal.append(b);
+    }
+    frag.append(mcal);
+
+    const agenda = C.dayEntries(sel, source);
+    frag.append(
+      h(doc, "div", "section", `${C.dayHeading(sel, today)}, ${C.dayLong(sel)}`, {
+        "data-role": "agenda-heading",
+      }),
+    );
+    const list = h(doc, "div", "todos", undefined, { "data-role": "agenda" });
+    for (const e of agenda.events) list.append(eventRow(doc, e));
+    for (const t of agenda.todos) list.append(row(doc, t, m, a));
+    frag.append(list);
+    if (!agenda.events.length && !agenda.todos.length) {
+      frag.append(
+        h(doc, "div", "note", "Nichts eingetragen. Oben eine Aufgabe für diesen Tag anlegen.", {
+          "data-role": "empty",
+        }),
+      );
+    }
+    return frag;
+  }
+
   /** Kids' progress glance (SPEC-0003): one bar per kid, done / total of today. */
   function glance(doc, m) {
     const panel = h(doc, "div", "panel kidsum", undefined, { "data-role": "kids-progress" });
@@ -311,7 +433,7 @@
    * @param {{ today: string, me: string, members: object[], todos: object[], areas: object[], routines?: object[],
    *   ticks?: object[], state: object }} m
    * @param {object} a actions: add, draft, setAddDue, setAddWho, toggle, edit, patch, setTitle, remove, clearArea,
-   *   selectArea, tickRoutine
+   *   selectArea, tickRoutine, setMode, selectDay, shiftMonth, goToday
    */
   function buildView(doc, m, a) {
     const root = h(doc, "div", "eltern");
@@ -332,7 +454,9 @@
     );
     root.append(top);
     root.append(glance(doc, m));
-    // [extension point: mode switch list/calendar (SPEC-0004)]
+    const switchRow = h(doc, "div", "modebar");
+    switchRow.append(modeSwitch(doc, m, a));
+    root.append(switchRow);
     root.append(quickAdd(doc, m, a));
 
     const area = m.state.areaFilter && m.areas.find((x) => x.id === m.state.areaFilter);
@@ -343,8 +467,12 @@
       bar.append(clear);
       root.append(bar);
     }
-    root.append(routineSection(doc, m, a));
-    root.append(listSections(doc, m, a));
+    if (m.state.mode === "calendar") {
+      root.append(calendarSection(doc, m, a));
+    } else {
+      root.append(routineSection(doc, m, a));
+      root.append(listSections(doc, m, a));
+    }
     root.append(areasPanel(doc, m, a));
     return root;
   }
@@ -364,7 +492,23 @@
     }
     const data = ctx.data;
     const me = record.member;
-    const state = { addDue: "", addWho: "me", draft: "", editing: null, areaFilter: null, mode: "list" };
+    const storage = () => {
+      try {
+        return typeof localStorage === "undefined" ? null : localStorage;
+      } catch {
+        return null; // blocked storage: the mode just does not persist
+      }
+    };
+    const state = {
+      addDue: "",
+      addWho: "me",
+      draft: "",
+      editing: null,
+      areaFilter: null,
+      mode: C.readMode(storage()),
+      calMonth: null, // month index of the shown month; null = the month of the selected day
+      calDay: null, // selected day key; null = today
+    };
     const model = { members: [], todos: [], areas: [], routines: [], ticks: [] };
     const host = h(doc, "div");
     view.append(host);
@@ -401,7 +545,8 @@
         const other = T.parentMembers(model.members).find((p) => p.id !== me);
         const record = T.newTodo({
           title,
-          due: state.addDue,
+          // calendar mode: the selected day is the due date (SPEC-0004 "Adding on a Selected Day")
+          due: state.mode === "calendar" ? state.calDay || ctx.clock.today() : state.addDue,
           assignee: state.addWho,
           me,
           other: other && other.id,
@@ -413,6 +558,31 @@
         await data.create("todos", record);
         const input = host.querySelector('[data-key="quick-title"]');
         if (input) input.focus();
+      },
+      setMode(mode) {
+        state.mode = mode;
+        state.editing = null;
+        C.writeMode(storage(), mode);
+        render();
+      },
+      selectDay(day) {
+        state.calDay = day;
+        state.editing = null;
+        render();
+      },
+      shiftMonth(delta) {
+        const mi =
+          (state.calMonth == null ? C.monthIndex(state.calDay || ctx.clock.today()) : state.calMonth) + delta;
+        state.calMonth = mi;
+        state.calDay = C.monthStart(mi);
+        state.editing = null;
+        render();
+      },
+      goToday() {
+        state.calMonth = null;
+        state.calDay = null;
+        state.editing = null;
+        render();
       },
       toggle: (todo) => data.update("todos", todo.id, T.toggleDone(todo, ctx.clock.today())),
       edit(id) {
@@ -474,5 +644,16 @@
     return () => offs.forEach((off) => off());
   }
 
-  return { buildView, quickAdd, editor, listSections, glance, routineSection, areasPanel, screen };
+  return {
+    buildView,
+    quickAdd,
+    editor,
+    listSections,
+    calendarSection,
+    modeSwitch,
+    glance,
+    routineSection,
+    areasPanel,
+    screen,
+  };
 });
