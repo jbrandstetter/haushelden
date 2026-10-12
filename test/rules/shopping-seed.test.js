@@ -44,9 +44,10 @@ describe("shopping seed", () => {
   });
 
   it("records the purchase of the item that is already in the cart", async () => {
-    const purchases = await all("purchases");
-    assert.equal(purchases.length, 1);
-    assert.equal(purchases[0].name, "Test-Eier");
+    // (the dev-only fake history of scripts/seed/learning.js is in the same collection: look at today's row)
+    const today = (await all("purchases")).filter((p) => p.day === new Date().toISOString().slice(0, 10));
+    assert.equal(today.length, 1);
+    assert.equal(today[0].name, "Test-Eier");
   });
 
   it("is idempotent", async () => {

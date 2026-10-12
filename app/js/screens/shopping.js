@@ -6,11 +6,14 @@
 // added them, "Im Wagen" with "Einkauf fertig", and (parents only) list management. The member id in the route is
 // the profile the screen was opened from; items added here are attributed to that member. Without one a parent
 // is attributed to their own member and a device account picks who is writing.
-// Suggestions, automatic items and rhythm texts belong to the purchase-history story and are not built here.
+// Purchase-history story: automatic items show their reason, parents get suggestions while typing (purchases are
+// readable by parents only), and opening a list asks the server to refill it (REQ "Automatic Refill").
 
 (function () {
   "use strict";
   const shop = HH.shop;
+  const rhythm = HH.rhythm;
+  const learning = HH.shopLearning;
   const CHECK =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
@@ -46,7 +49,7 @@
     const isParent = authRecord.collectionName === "parents";
     const routeMember = ctx.args[0] || null;
 
-    const state = { lists: [], items: [], members: [] };
+    const state = { lists: [], items: [], members: [], purchases: [], settings: [] };
     const memberOf = (id) => state.members.find((m) => m.id === id) || null;
     const writerId = () => routeMember || (isParent ? authRecord.member : null) || pickedMember;
 
@@ -79,13 +82,15 @@
     addBtn.type = "submit";
     addBtn.setAttribute("aria-label", "Hinzufügen");
     form.append(input, addBtn);
+    const sugg = el("div", "sugg");
+    sugg.setAttribute("aria-label", "Vorschläge");
     const hint = el("div", "hint");
     hint.setAttribute("role", "status");
     hint.setAttribute("aria-live", "polite");
 
     const body = el("div", "body");
     const manageWrap = el("div", "manage-wrap");
-    root.append(top, chips, tabs, form, hint, body, manageWrap);
+    root.append(top, chips, tabs, form, sugg, hint, body, manageWrap);
 
     const say = (text, warn) => {
       hint.textContent = text || "";
@@ -116,6 +121,8 @@
           .catch((err) => console.warn("shop: tick failed", { message: String(err) }));
       };
       const nm = el("div", "nm", item.name);
+      const why = learning.reasonEl(document, item, ctx.clock.today());
+      if (why) nm.append(why);
       row.append(cb, nm, avatarOf(memberOf(item.by)));
       if (isParent && !item.bought) {
         const x = el("button", "x", "×");
@@ -217,7 +224,9 @@
         managing = !managing;
         renderManage();
       };
-      manageWrap.append(toggle);
+      const learned = el("a", "link", "Gelernt anzeigen");
+      learned.href = "#/gelernt";
+      manageWrap.append(toggle, learned);
       if (!managing) return;
       const panel = el("section", "panel manage");
       panel.append(el("h3", "", "Listen"));
@@ -284,15 +293,49 @@
       renderChips();
       renderTabs();
       renderBody();
+      renderSuggestions();
+      refillOpenList();
+    }
+
+    // ---- suggestions and automatic refill (SPEC-0005) -------------------------------------------------------
+    // Only parents can read the purchase history, so only they get suggestions; kids see the automatic items.
+    function renderSuggestions() {
+      const list = state.lists.find((l) => l.id === currentList);
+      if (!isParent || !list) {
+        sugg.textContent = "";
+        return;
+      }
+      const taken = new Set(state.items.filter((i) => i.list === list.id).map((i) => shop.nameKey(i.name)));
+      const entries = rhythm.learn(state.purchases.filter((p) => p.list === list.id));
+      const autoRefill = state.settings[0] ? !!state.settings[0].auto_refill : true;
+      const chipsList = learning.chipsFor({
+        entries,
+        typed: input.value,
+        taken,
+        today: ctx.clock.today(),
+        autoRefill,
+      });
+      learning.renderChips(document, sugg, chipsList, (name) => add(name));
+    }
+
+    let refilled = null;
+    function refillOpenList() {
+      if (!currentList || refilled === currentList) return;
+      refilled = currentList;
+      // The server adds due items; they arrive through live sync like any other item.
+      void learning.requestRefill({
+        fetchImpl: ctx.fetch || (typeof fetch === "function" ? fetch : null),
+        token: ctx.auth.token && ctx.auth.token(),
+        listId: currentList,
+      });
     }
 
     // ---- adding -----------------------------------------------------------------------------------------
-    form.onsubmit = async (ev) => {
-      ev.preventDefault();
+    async function add(name) {
       if (!currentList) return;
       const result = await shop.addItem(data, state.items, {
         list: currentList,
-        name: input.value,
+        name,
         by: writerId(),
       });
       if (!result.ok) {
@@ -303,8 +346,16 @@
       say("");
       input.value = "";
       input.focus();
+      renderSuggestions();
+    }
+    form.onsubmit = (ev) => {
+      ev.preventDefault();
+      return add(input.value);
     };
-    input.addEventListener("input", () => say(""));
+    input.addEventListener("input", () => {
+      say("");
+      renderSuggestions();
+    });
 
     // ---- live data --------------------------------------------------------------------------------------
     const offs = [
@@ -322,6 +373,18 @@
         render();
       }),
     ];
+    if (isParent) {
+      offs.push(
+        data.subscribe("purchases", (rows) => {
+          state.purchases = rows || [];
+          renderSuggestions();
+        }),
+        data.subscribe("settings", (rows) => {
+          state.settings = rows || [];
+          renderSuggestions();
+        }),
+      );
+    }
     render();
     renderManage();
     return () => offs.forEach((off) => off());

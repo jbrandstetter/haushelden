@@ -23,6 +23,7 @@
     ["einladung", "js/screens/einladung.js"], // invite acceptance (#11)
     ["wer", "js/screens/wer.js"], // "Wer bist du?" (#11)
     ["einkauf", "js/screens/shopping.js"], // shopping lists (#/einkauf/<member id>)
+    ["gelernt", "js/screens/gelernt.js"], // learned items, parents (SPEC-0005)
     ["bereiche", "js/screens/bereiche.js"], // areas of responsibility management (SPEC-0003)
     ["einstellungen", "js/screens/einstellungen.js"], // parents' settings and data export (#12)
   ];
