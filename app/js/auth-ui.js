@@ -341,7 +341,9 @@
         await flow().signOut();
         go("#/anmelden");
       });
-      actions.append(enroll, out);
+      const settings = el(doc, "a", "btn", "Einstellungen");
+      settings.href = "#/einstellungen";
+      actions.append(enroll, settings, out);
     } else if (kind === "pin") {
       const back = el(doc, "button", "link", "Fertig – zurück zu „Wer bist du?“");
       back.type = "button";
@@ -349,7 +351,9 @@
         await flow().backToDevice();
         go("#/wer");
       });
-      actions.append(back);
+      const settings = el(doc, "a", "btn", "Einstellungen");
+      settings.href = "#/einstellungen";
+      actions.append(settings, back);
     }
 
     if (!ctx.data) {

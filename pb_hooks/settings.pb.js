@@ -1,4 +1,4 @@
-/* global toString, TooManyRequestsError, BadRequestError, ForbiddenError, onRecordDeleteRequest */
+/* global TooManyRequestsError, BadRequestError, ForbiddenError, onRecordDeleteRequest */
 // Governing: ADR-0001 (PocketBase as the household backend), ADR-0003 (kid access via device accounts),
 // SPEC-0001 REQ "Household Settings", REQ "Data Export", REQ "Household and Members", Security Requirements
 // "Authentication", "Rate Limiting", "Request Body Size Limits"
