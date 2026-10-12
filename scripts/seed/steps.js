@@ -7,13 +7,21 @@
 
 const fixtures = require("./fixtures.js");
 const routines = require("./routines.js");
+const { pinFields } = require("./accounts.js"); // fake PIN for the seeded parents (accounts story)
 
 const steps = [
   {
     collection: "members",
     key: "key",
-    records: () =>
-      fixtures.members.map(({ key, name, role, emoji, colour }) => ({ key, name, role, emoji, colour })),
+    records: ({ secrets }) =>
+      fixtures.members.map(({ key, name, role, emoji, colour }) => ({
+        key,
+        name,
+        role,
+        emoji,
+        colour,
+        ...pinFields(role, secrets),
+      })),
     // Maps an existing record back to its fixture key, so later steps still find ids on a re-run.
     identify: (record) => fixtures.members.find((m) => m.name === record.name)?.key,
   },

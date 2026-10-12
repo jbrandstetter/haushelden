@@ -17,6 +17,10 @@
     ["routinen", "js/screens/routinen.js"],
     ["maskottchen", "js/screens/maskottchen.js"],
     ["eltern", "js/screens/eltern.js"], // parents' to-dos, list mode (SPEC-0003)
+    ["setup", "js/screens/setup.js"], // first-run setup (#11)
+    ["anmelden", "js/screens/anmelden.js"], // parent sign-in (#11)
+    ["einladung", "js/screens/einladung.js"], // invite acceptance (#11)
+    ["wer", "js/screens/wer.js"], // "Wer bist du?" (#11)
     ["einkauf", "js/screens/shopping.js"], // shopping lists (#/einkauf/<member id>)
   ];
   if (typeof module === "object" && module.exports) module.exports = { ROUTES };

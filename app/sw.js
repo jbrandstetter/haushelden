@@ -11,6 +11,7 @@ const FILES = [
   "index.html",
   "manifest.json",
   "css/app.css",
+  "css/auth.css",
   "css/shop.css",
   "icon-180.png",
   "icon-192.png",
@@ -23,6 +24,8 @@ const FILES = [
   "js/storage.js",
   "js/sse.js",
   "js/pb.js",
+  "js/auth.js",
+  "js/auth-ui.js",
   "js/data.js",
   "js/todos.js",
   "js/router.js",
@@ -33,6 +36,10 @@ const FILES = [
   "js/screens/routinen.js",
   "js/screens/maskottchen.js",
   "js/screens/eltern.js",
+  "js/screens/setup.js",
+  "js/screens/anmelden.js",
+  "js/screens/einladung.js",
+  "js/screens/wer.js",
   "js/screens/shopping.js",
 ];
 
