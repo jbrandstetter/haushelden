@@ -17,6 +17,7 @@
     ["routinen", "js/screens/routinen.js"],
     ["maskottchen", "js/screens/maskottchen.js"],
     ["eltern", "js/screens/eltern.js"], // parents' to-dos, list mode (SPEC-0003)
+    ["kind", "js/screens/kind.js"], // kid board, #/kind/<memberId> (SPEC-0002)
   ];
   if (typeof module === "object" && module.exports) module.exports = { ROUTES };
   else (root.HH = root.HH || {}).ROUTES = ROUTES;
