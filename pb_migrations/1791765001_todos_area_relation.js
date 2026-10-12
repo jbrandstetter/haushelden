@@ -1,3 +1,4 @@
+/* global RelationField, TextField */
 // Governing: ADR-0001 (PocketBase as the household backend), SPEC-0003 REQ "Areas of Responsibility" (deleting an
 // area MUST keep its to-dos, without an area), REQ "To-dos"
 //
