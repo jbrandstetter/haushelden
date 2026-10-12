@@ -1,14 +1,15 @@
 // Governing: ADR-0001 (reads and writes go through the data layer; offline creates use its outbox),
-// SPEC-0003 REQ "To-dos", REQ "Quick Add", REQ "List Grouping", REQ "Editing", SPEC-0001 REQ "Prototype as UI
-// Reference" (prototype renderAdult, list mode), REQ "Household Day and Time Zone"
+// SPEC-0003 REQ "To-dos", REQ "Quick Add", REQ "List Grouping", REQ "Editing", REQ "Areas of Responsibility",
+// REQ "Parents' Routines Today", REQ "Kids' Progress Glance", SPEC-0001 REQ "Prototype as UI Reference"
+// (prototype renderAdult, list mode), REQ "Household Day and Time Zone"
 //
 // The parents' view (`#/eltern`), list mode. `buildView` turns a plain model into DOM and is the part tests
 // render with a fake document; the screen function at the bottom wires it to the data layer.
 //
 // Extension points for the follow-up stories (add to the marked places, do not restructure):
-//  - areas (SPEC-0003 "Areas of Responsibility"): fill `model.areas` and `model.state.areaFilter`; `buildView`
-//    already shows the filter bar and the editor's area row when `areas` is non-empty, and quick add already
-//    puts new to-dos into `state.areaFilter`. Add the areas panel under the marked comment in `buildView`.
+//  - areas (SPEC-0003 "Areas of Responsibility"): done by the areas story (#17): the panel, the filter bar, the
+//    editor's area row and quick add into the selected area. The calendar (SPEC-0004) filters by
+//    `state.areaFilter` too.
 //  - calendar mode (SPEC-0004): `state.mode` is "list"; add a mode switch at the marked comment, render the
 //    calendar instead of `listSections`, and keep `quickAdd` shared.
 
@@ -16,13 +17,14 @@
   const api = factory(
     typeof module === "object" && module.exports ? require("../todos.js") : root.HH.todos,
     typeof module === "object" && module.exports ? require("../dates.js") : root.HH.dates,
+    typeof module === "object" && module.exports ? require("../areas.js") : root.HH.areas,
   );
   if (typeof module === "object" && module.exports) module.exports = api;
   else {
     root.HH.eltern = api;
     root.HH.screens.eltern = api.screen;
   }
-})(typeof self !== "undefined" ? self : this, function (T, dates) {
+})(typeof self !== "undefined" ? self : this, function (T, dates, A) {
   "use strict";
 
   function h(doc, tag, className, text, attrs) {
@@ -227,10 +229,89 @@
     return frag;
   }
 
+  /** Kids' progress glance (SPEC-0003): one bar per kid, done / total of today. */
+  function glance(doc, m) {
+    const panel = h(doc, "div", "panel kidsum", undefined, { "data-role": "kids-progress" });
+    for (const p of A.kidsProgress(m.routines || [], m.ticks || [], m.members, m.today)) {
+      const row = h(doc, "div", "prog", undefined, { "data-kid": p.kid.id });
+      if (/^[a-z]+$/.test(p.kid.colour || "")) row.setAttribute("style", `--c:var(--${p.kid.colour})`);
+      const bar = h(doc, "div", "bar");
+      const fill = h(doc, "i", "");
+      fill.setAttribute("style", `width:${p.pct}%`);
+      bar.append(fill);
+      row.append(
+        h(doc, "b", "", `${p.kid.emoji || ""} ${p.kid.name}`.trim()),
+        bar,
+        h(doc, "span", "", `${p.done}/${p.total}`, { "data-role": "progress" }),
+      );
+      panel.append(row);
+    }
+    return panel;
+  }
+
+  /** "Routine heute": the routines due for this parent today, tickable per parent and day. */
+  function routineSection(doc, m, a) {
+    const me = m.members.find((x) => x.id === m.me);
+    const items = A.routineToday(m.routines || [], m.ticks || [], me, m.members, m.today);
+    const frag = doc.createDocumentFragment();
+    if (!items.length) return frag;
+    frag.append(h(doc, "div", "section", "Routine heute", { "data-role": "routine-heading" }));
+    const list = h(doc, "div", "todos", undefined, { "data-role": "routine-today" });
+    for (const { routine, done } of items) {
+      const line = h(doc, "div", `todo${done ? " done" : ""}`, undefined, { "data-routine": routine.id });
+      const cb = h(doc, "button", "cb", undefined, {
+        type: "button",
+        "aria-label": done ? "Wieder öffnen" : "Erledigt",
+        "aria-pressed": String(done),
+        "data-role": "routine-check",
+      });
+      cb.addEventListener("click", () => a.tickRoutine(routine, done));
+      const tx = h(doc, "div", "tx");
+      tx.append(h(doc, "div", "tt", `${routine.emoji || ""} ${routine.title}`.trim()));
+      if (routine.hint) tx.append(h(doc, "div", "meta", routine.hint));
+      line.append(cb, tx);
+      list.append(line);
+    }
+    frag.append(list);
+    return frag;
+  }
+
+  /** The areas panel "Bereiche": every area with owner and open count; mine outlined; tap = filter. */
+  function areasPanel(doc, m, a) {
+    const frag = doc.createDocumentFragment();
+    frag.append(h(doc, "div", "section", "Bereiche"));
+    const grid = h(doc, "div", "areas", undefined, { "data-role": "areas" });
+    for (const card of A.areaCards(m.areas, m.todos, m.members, m.me, m.state.areaFilter)) {
+      const b = h(doc, "button", `area${card.mine ? " mine" : ""}${card.selected ? " sel" : ""}`, undefined, {
+        type: "button",
+        "data-area-card": card.area.id,
+        "aria-pressed": String(card.selected),
+      });
+      const owner = h(doc, "span", "ao");
+      if (card.owner) {
+        owner.append(h(doc, "span", "oav", card.owner.emoji || "🙂", { "aria-hidden": "true" }));
+        owner.append(doc.createTextNode(` ${card.owner.name} · ${card.open} offen`));
+      } else {
+        owner.append(doc.createTextNode(A.cardLabel(card)));
+      }
+      b.append(h(doc, "span", "ae", card.area.emoji || ""), h(doc, "span", "an", card.area.name), owner);
+      b.addEventListener("click", () => a.selectArea(card.area.id));
+      grid.append(b);
+    }
+    frag.append(grid);
+    const note = h(doc, "p", "muted", "Umrandet: Bereiche, für die du zuständig bist. ");
+    note.setAttribute("style", "font-size:13px");
+    note.append(h(doc, "a", "", "Bereiche bearbeiten", { href: "#/bereiche", "data-role": "manage-areas" }));
+    frag.append(note);
+    return frag;
+  }
+
   /**
    * @param {Document} doc
-   * @param {{ today: string, me: string, members: object[], todos: object[], areas: object[], state: object }} m
-   * @param {object} a actions: add, draft, setAddDue, setAddWho, toggle, edit, patch, setTitle, remove, clearArea
+   * @param {{ today: string, me: string, members: object[], todos: object[], areas: object[], routines?: object[],
+   *   ticks?: object[], state: object }} m
+   * @param {object} a actions: add, draft, setAddDue, setAddWho, toggle, edit, patch, setTitle, remove, clearArea,
+   *   selectArea, tickRoutine
    */
   function buildView(doc, m, a) {
     const root = h(doc, "div", "eltern");
@@ -250,7 +331,8 @@
       })(),
     );
     root.append(top);
-    // [extension point: kids' progress glance (SPEC-0003), mode switch list/calendar (SPEC-0004)]
+    root.append(glance(doc, m));
+    // [extension point: mode switch list/calendar (SPEC-0004)]
     root.append(quickAdd(doc, m, a));
 
     const area = m.state.areaFilter && m.areas.find((x) => x.id === m.state.areaFilter);
@@ -261,8 +343,9 @@
       bar.append(clear);
       root.append(bar);
     }
+    root.append(routineSection(doc, m, a));
     root.append(listSections(doc, m, a));
-    // [extension point: areas panel "Bereiche" (SPEC-0003 "Areas of Responsibility")]
+    root.append(areasPanel(doc, m, a));
     return root;
   }
 
@@ -282,7 +365,7 @@
     const data = ctx.data;
     const me = record.member;
     const state = { addDue: "", addWho: "me", draft: "", editing: null, areaFilter: null, mode: "list" };
-    const model = { members: [], todos: [], areas: [] };
+    const model = { members: [], todos: [], areas: [], routines: [], ticks: [] };
     const host = h(doc, "div");
     view.append(host);
 
@@ -291,6 +374,7 @@
       const key = active && active.getAttribute && active.getAttribute("data-key");
       const caret = key && typeof active.selectionStart === "number" ? active.selectionStart : null;
       host.textContent = "";
+      state.areaFilter = A.effectiveFilter(state.areaFilter, model.areas); // a deleted area ends the filter
       host.append(buildView(doc, { ...model, today: ctx.clock.today(), me, state }, actions));
       if (key) {
         const again = host.querySelector(`[data-key="${key}"]`);
@@ -349,6 +433,20 @@
         state.areaFilter = null;
         render();
       },
+      selectArea(id) {
+        state.areaFilter = A.toggleFilter(state.areaFilter, id);
+        render();
+        if (typeof window !== "undefined" && window.scrollTo) window.scrollTo(0, 0);
+      },
+      // Ticks are per parent and day: un-ticking deletes this parent's own tick record.
+      tickRoutine(routine, done) {
+        const today = ctx.clock.today();
+        if (done) {
+          const tick = A.findTick(model.ticks, routine.id, me, today);
+          return tick && data.delete("routine_done", tick.id);
+        }
+        return data.create("routine_done", { routine: routine.id, member: me, day: today });
+      },
     };
 
     const offs = [
@@ -360,9 +458,21 @@
         model.todos = rows;
         render();
       }),
+      data.subscribe("areas", (rows) => {
+        model.areas = rows;
+        render();
+      }),
+      data.subscribe("routines", (rows) => {
+        model.routines = rows;
+        render();
+      }),
+      data.subscribe("routine_done", (rows) => {
+        model.ticks = rows;
+        render();
+      }),
     ];
     return () => offs.forEach((off) => off());
   }
 
-  return { buildView, quickAdd, editor, listSections, screen };
+  return { buildView, quickAdd, editor, listSections, glance, routineSection, areasPanel, screen };
 });
