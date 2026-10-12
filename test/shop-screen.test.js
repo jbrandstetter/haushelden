@@ -9,6 +9,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 const shop = require("../app/js/shop.js");
+const rhythm = require("../app/js/rhythm.js");
+const shopLearning = require("../app/js/shop-learning.js");
 
 class FakeEl {
   constructor(tag) {
@@ -56,7 +58,7 @@ class FakeEl {
 }
 
 function load() {
-  const HH = { shop, screens: {} };
+  const HH = { shop, rhythm, shopLearning, screens: {} };
   const ctx = vm.createContext({
     HH,
     document: { createElement: (t) => new FakeEl(t) },
