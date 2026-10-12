@@ -6,6 +6,7 @@
 // `ctx.ids` holds the ids created by earlier steps (ctx.ids.members.papa, ...).
 
 const fixtures = require("./fixtures.js");
+const routines = require("./routines.js");
 
 const steps = [
   {
@@ -44,7 +45,8 @@ const steps = [
       })),
   },
   { collection: "settings", records: () => [{ ...fixtures.settings }] },
-  // routines, todos, areas, lists, shop_items and purchases are added by the stories that create those
+  { collection: "routines", records: ({ ids }) => routines.records(ids.members) },
+  // todos, areas, lists, shop_items and purchases are added by the stories that create those
   // collections, using fixtures.routines / todos / areas / lists / purchases.
 ];
 
