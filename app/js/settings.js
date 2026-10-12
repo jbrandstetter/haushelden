@@ -63,6 +63,7 @@
     { hash: "#/routinen", label: "Routinen", emoji: "🗓️" },
     { hash: "#/maskottchen", label: "Maskottchen", emoji: "🦊" },
     { hash: "#/bereiche", label: "Bereiche & Zuständigkeiten", emoji: "🏠" },
+    { hash: "#/gelernt", label: "Gelernte Artikel", emoji: "🧠" },
   ];
 
   const runes = (s) => Array.from(String(s)).length;
