@@ -9,7 +9,7 @@ test("prerequisites: pinned PocketBase binary (npm run pb:download) is available
 });
 
 test("scenario: a failed sign-in is logged without the password (real PocketBase)", async () => {
-  const port = 8222;
+  const port = 8225; // ops.test.js uses 8221-8223; both run in parallel under test:rules
   const dir = h.tmpDir("log");
   const server = h.serve(dir, port);
   try {
