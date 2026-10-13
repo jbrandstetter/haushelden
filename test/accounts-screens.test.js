@@ -244,7 +244,7 @@ test("Parent PIN: a wrong PIN is announced and cleared; the right one opens the 
   results.unlockParent = { ok: true };
   byId(doc, "pin-input").value = "246810";
   await submit(view.querySelector("form"));
-  assert.equal(location.hash, "#/ich/mama");
+  assert.equal(location.hash, "#/eltern");
 });
 
 test("Parent PIN: cancelling closes the prompt without opening anything", async () => {
@@ -311,4 +311,16 @@ test("member names are shown as text, never parsed as markup", () => {
   ctx.data.subscribe = (_c, cb) => (cb([member("x", "kid", "<img src=x onerror=alert(1)>")]), () => {});
   ui.wer(view, ctx);
   assert.match(view.textContent, /<img src=x onerror=alert\(1\)>/);
+});
+
+test("Signed-in parent: their own profile opens the parents' view (#/eltern), the other parent is not offered", async () => {
+  const { ui, view } = setupUi("parent");
+  ui.wer(view, ctxFor({ id: "par1", collectionName: "parents", member: "papa" }));
+  const profiles = view.querySelectorAll(".adults .profile");
+  assert.deepEqual(
+    profiles.map((b) => b.getAttribute("data-member")),
+    ["papa"],
+  );
+  await click(profiles[0]);
+  assert.equal(location.hash, "#/eltern");
 });

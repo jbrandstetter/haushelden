@@ -979,3 +979,15 @@ canvas#confetti {
   margin-right: 6px;
   color: var(--subtext);
 }
+
+/* navigation row of the parents' view */
+.eltern .topnav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.eltern .topnav a {
+  text-decoration: none;
+}
