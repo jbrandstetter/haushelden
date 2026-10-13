@@ -86,6 +86,12 @@ test("Enrolled iPad starts at Wer bist du?; signed-in users skip the sign-in scr
   assert.equal(flowLib.guard("", "parent"), "#/wer");
   assert.equal(flowLib.guard("#/eltern", "parent"), null);
   assert.equal(flowLib.guard("#/eltern", "pin"), null);
+  assert.equal(
+    flowLib.guard("#/ich/abc123", "parent"),
+    "#/eltern",
+    "the old prototype address still opens the parents' view",
+  );
+  assert.equal(flowLib.guard("#/ich/abc123", null), "#/anmelden", "signed out: sign in first");
   for (const route of ["eltern", "routinen", "maskottchen", "bereiche", "gelernt", "einstellungen"])
     assert.equal(flowLib.guard(`#/${route}`, "device"), "#/wer", route);
   assert.equal(flowLib.guard("#/anmelden", "parent"), "#/wer");

@@ -54,6 +54,7 @@
       .split("/")[0];
     if (!kind) return PUBLIC_ROUTES.includes(name) ? null : "#/anmelden";
     if (name === "anmelden" || name === "setup") return "#/wer";
+    if (name === "ich") return "#/eltern"; // old address of the parents' view (prototype route, cached pages and bookmarks)
     if (kind === "device" && PARENT_ROUTES.includes(name)) return "#/wer";
     if (name === "") return "#/wer"; // everybody signed in starts at "Wer bist du?" (the shell's start page is only a placeholder)
     return null;
