@@ -52,6 +52,17 @@ chooser, which already knows about the session kind.
 **Choice**: keep the old address working by redirecting it in the guard.
 **Rationale**: Cached pages and bookmarks from before the fix still use it; a redirect costs one line and one test.
 
+### The help page is data plus a tiny renderer
+
+**Choice**: `app/js/screens/hilfe.js` holds the German text as plain data (`SECTIONS`: paragraphs, numbered steps, bullet lists,
+notes) and renders each section as a native `<details>`/`<summary>`. The route is in the guard's public list and in the
+service worker's precache; the header always shows "Hilfe" and the sign-in screen links to it.
+**Rationale**: Native details are keyboard accessible without scripting, the page needs no session or data and therefore works
+signed out and offline, and the text can be tested (topics present, no addresses or personal names) because it is data.
+**Alternatives considered**:
+- A separate static HTML file: would bypass the shell's header and route guard and need its own styling.
+- Help embedded in each screen: scatters the text and cannot serve a visitor who is not signed in.
+
 ### Text selection is on by default
 
 **Choice**: only `button`, `.tile`, `.profile`, `.shopbtn` and `.check` set `user-select: none`.
@@ -76,10 +87,10 @@ flowchart TB
 
 | Session kind | Entries | Parent-only screens |
 |--------------|---------|---------------------|
-| none | brand → sign-in | — (guard sends to sign-in) |
-| device | Wer bist du?, Einkauf | redirected to "Wer bist du?" |
-| pin | Wer bist du?, Aufgaben, Einkauf, Einstellungen | open |
-| parent | Wer bist du?, Aufgaben, Einkauf, Einstellungen | open |
+| none | brand → sign-in, Hilfe | — (guard sends to sign-in; the help page is public) |
+| device | Wer bist du?, Einkauf, Hilfe | redirected to "Wer bist du?" |
+| pin | Wer bist du?, Aufgaben, Einkauf, Einstellungen, Hilfe | open |
+| parent | Wer bist du?, Aufgaben, Einkauf, Einstellungen, Hilfe | open |
 
 ## Risks / Trade-offs
 

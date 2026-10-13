@@ -1007,3 +1007,27 @@ canvas#confetti {
   box-shadow: var(--shadow);
   color: var(--text);
 }
+
+/* family help page (#/hilfe) */
+.hilfe .help-section {
+  background: var(--card);
+  box-shadow: var(--shadow);
+  border-radius: 16px;
+  padding: 4px 16px;
+  margin-bottom: 10px;
+}
+.hilfe .help-section summary {
+  cursor: pointer;
+  font-weight: 700;
+  padding: 12px 0;
+}
+.hilfe .help-section[open] summary {
+  margin-bottom: 4px;
+}
+.hilfe .help-list {
+  margin: 0 0 12px;
+  padding-left: 22px;
+}
+.hilfe .help-list li {
+  margin-bottom: 8px;
+}

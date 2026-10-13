@@ -86,6 +86,8 @@ test("Enrolled iPad starts at Wer bist du?; signed-in users skip the sign-in scr
   assert.equal(flowLib.guard("", "parent"), "#/wer");
   assert.equal(flowLib.guard("#/eltern", "parent"), null);
   assert.equal(flowLib.guard("#/eltern", "pin"), null);
+  assert.equal(flowLib.guard("#/hilfe", null), null, "the help page opens without a session");
+  for (const kind of ["device", "pin", "parent"]) assert.equal(flowLib.guard("#/hilfe", kind), null, kind);
   assert.equal(
     flowLib.guard("#/ich/abc123", "parent"),
     "#/eltern",

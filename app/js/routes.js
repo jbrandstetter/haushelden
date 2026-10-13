@@ -22,6 +22,7 @@
     ["anmelden", "js/screens/anmelden.js"], // parent sign-in (#11)
     ["einladung", "js/screens/einladung.js"], // invite acceptance (#11)
     ["wer", "js/screens/wer.js"], // "Wer bist du?" (#11)
+    ["hilfe", "js/screens/hilfe.js"], // family help page, public (SPEC-0008)
     ["einkauf", "js/screens/shopping.js"], // shopping lists (#/einkauf/<member id>)
     ["gelernt", "js/screens/gelernt.js"], // learned items, parents (SPEC-0005)
     ["bereiche", "js/screens/bereiche.js"], // areas of responsibility management (SPEC-0003)

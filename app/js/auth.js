@@ -14,7 +14,7 @@
   "use strict";
 
   // Routes that need no session (hash routes, see routes.js).
-  const PUBLIC_ROUTES = ["setup", "anmelden", "einladung"];
+  const PUBLIC_ROUTES = ["setup", "anmelden", "einladung", "hilfe"];
   // Routes only parents open (a family device sends the visitor to "Wer bist du?" and its PIN prompt).
   // Parent-only screens: a plain family-device session is sent back to "Wer bist du?" (the server rules enforce it anyway).
   const PARENT_ROUTES = ["einstellungen", "eltern", "routinen", "maskottchen", "bereiche", "gelernt"];
