@@ -151,7 +151,9 @@
     wrap.append(panel);
     const first = el(doc, "a", "link", "Erste Einrichtung");
     first.href = "#/setup";
-    wrap.append(first);
+    const help = el(doc, "a", "link", "Hilfe zur Installation und Benutzung");
+    help.href = "#/hilfe";
+    wrap.append(first, help);
     view.append(wrap);
     email.input.focus();
   }

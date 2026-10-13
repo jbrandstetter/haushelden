@@ -26,6 +26,7 @@
     routinen: "einstellungen",
     maskottchen: "einstellungen",
     bereiche: "einstellungen",
+    hilfe: "hilfe",
   };
 
   const routeName = (hash) =>
@@ -35,11 +36,12 @@
 
   /**
    * @param {{ kind: "device"|"pin"|"parent"|null, memberId?: string, hash?: string }} state
-   * @returns {{ key: string, label: string, href: string, current: boolean }[]} empty while signed out
+   * @returns {{ key: string, label: string, href: string, current: boolean }[]} only "Hilfe" while signed out
    */
   function navItems({ kind, memberId, hash }) {
-    if (!kind) return [];
     const here = SECTION[routeName(hash)] || "";
+    const help = { key: "hilfe", label: "Hilfe", href: "#/hilfe" }; // public: also for visitors who are not signed in
+    if (!kind) return [{ ...help, current: help.key === here }];
     const parentLike = kind === "parent" || kind === "pin";
     const items = [{ key: "wer", label: "Wer bist du?", href: "#/wer" }];
     if (parentLike) items.push({ key: "eltern", label: "Aufgaben", href: "#/eltern" });
@@ -49,6 +51,7 @@
       href: memberId ? `#/einkauf/${encodeURIComponent(memberId)}` : "#/einkauf",
     });
     if (parentLike) items.push({ key: "einstellungen", label: "Einstellungen", href: "#/einstellungen" });
+    items.push(help);
     return items.map((i) => ({ ...i, current: i.key === here }));
   }
 

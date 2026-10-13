@@ -36,9 +36,9 @@ Chosen option: "Header navigation rendered by the shell", because it is the only
 forgotten: the bar exists independently of the screens, and a test checks that every entry has a route.
 
 Details as built:
-- The pure function `navItems({ kind, memberId, hash })` (`app/js/shellnav.js`) returns the entries. Signed out: none
-  (the brand link leads to sign-in). Parent or PIN session: Wer bist du?, Aufgaben, Einkauf (for the member), Einstellungen.
-  Family device: Wer bist du? and Einkauf. The current section carries `aria-current="page"`; the settings sub-screens
+- The pure function `navItems({ kind, memberId, hash })` (`app/js/shellnav.js`) returns the entries. Signed out: only
+  Hilfe (the brand link leads to sign-in). Parent or PIN session: Wer bist du?, Aufgaben, Einkauf (for the member),
+  Einstellungen, Hilfe. Family device: Wer bist du?, Einkauf, Hilfe. The help page is a public route. The current section carries `aria-current="page"`; the settings sub-screens
   (Routinen, Maskottchen, Bereiche) belong to Einstellungen and the learned overview to Einkauf.
 - The bar is re-rendered on every route change and whenever the session changes (sign-in, PIN, back to the device,
   sign-out).

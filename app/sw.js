@@ -48,6 +48,7 @@ const FILES = [
   "js/screens/anmelden.js",
   "js/screens/einladung.js",
   "js/screens/wer.js",
+  "js/screens/hilfe.js",
   "js/screens/shopping.js",
   "js/screens/gelernt.js",
   "js/screens/bereiche.js",
