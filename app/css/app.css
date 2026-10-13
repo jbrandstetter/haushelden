@@ -83,6 +83,13 @@ body {
     "Segoe UI",
     sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+/* Text can be selected and copied everywhere; only controls and tiles that are tapped repeatedly are not selectable. */
+button,
+.tile,
+.profile,
+.shopbtn,
+.check {
   user-select: none;
   -webkit-user-select: none;
 }
@@ -980,14 +987,14 @@ canvas#confetti {
   color: var(--subtext);
 }
 
-/* navigation row of the parents' view */
-.eltern .topnav {
+/* navigation row of the parents' view (a sibling of the .eltern container, so not scoped under it) */
+.topnav {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin: 0 0 14px;
 }
-.eltern .topnav a {
+.topnav a {
   text-decoration: none;
 }
