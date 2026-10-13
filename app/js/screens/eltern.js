@@ -482,20 +482,6 @@
     view.append(h(view.ownerDocument, "p", "muted", text));
   }
 
-  /** Navigation row of the parents' view: shopping, settings and back to "Wer bist du?". */
-  function topNav(doc, me) {
-    const nav = h(doc, "nav", "topnav", undefined, { "aria-label": "Bereiche" });
-    nav.append(
-      h(doc, "a", "btn", "🛒 Einkauf", {
-        href: `#/einkauf/${encodeURIComponent(me)}`,
-        "data-role": "nav-shop",
-      }),
-      h(doc, "a", "btn", "⚙️ Einstellungen", { href: "#/einstellungen", "data-role": "nav-settings" }),
-      h(doc, "a", "link", "Wer bist du?", { href: "#/wer", "data-role": "nav-who" }),
-    );
-    return nav;
-  }
-
   function screen(view, ctx) {
     const doc = view.ownerDocument;
     view.append(h(doc, "h1", "", "Aufgaben"));
@@ -506,8 +492,6 @@
     }
     const data = ctx.data;
     const me = record.member;
-    // Navigation: the parents' view is reached from "Wer bist du?"; shopping and settings are one tap away.
-    view.append(topNav(doc, me));
     const storage = () => {
       try {
         return typeof localStorage === "undefined" ? null : localStorage;
@@ -670,7 +654,6 @@
     glance,
     routineSection,
     areasPanel,
-    topNav,
     screen,
   };
 });

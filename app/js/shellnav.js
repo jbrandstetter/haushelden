@@ -1,0 +1,74 @@
+// Governing: SPEC-0001 REQ "Prototype as UI Reference" (the prototype always shows where you are and how to get
+// back), REQ "Kid Access on Enrolled Devices" (a family device sees no parent entries)
+//
+// The navigation bar in the page header: it is built from the session kind and the current page, so every
+// screen has it. Pure `navItems` (tested) plus a small DOM `render`.
+
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === "object" && module.exports) module.exports = api;
+  else {
+    root.HH = root.HH || {};
+    root.HH.shellnav = api;
+  }
+})(typeof self !== "undefined" ? self : this, function () {
+  "use strict";
+
+  // Which entry a page belongs to (so e.g. "Bereiche" highlights "Einstellungen").
+  const SECTION = {
+    wer: "wer",
+    kind: "wer",
+    eltern: "eltern",
+    ich: "eltern",
+    einkauf: "einkauf",
+    gelernt: "einkauf",
+    einstellungen: "einstellungen",
+    routinen: "einstellungen",
+    maskottchen: "einstellungen",
+    bereiche: "einstellungen",
+  };
+
+  const routeName = (hash) =>
+    String(hash || "")
+      .replace(/^#\/?/, "")
+      .split("/")[0];
+
+  /**
+   * @param {{ kind: "device"|"pin"|"parent"|null, memberId?: string, hash?: string }} state
+   * @returns {{ key: string, label: string, href: string, current: boolean }[]} empty while signed out
+   */
+  function navItems({ kind, memberId, hash }) {
+    if (!kind) return [];
+    const here = SECTION[routeName(hash)] || "";
+    const parentLike = kind === "parent" || kind === "pin";
+    const items = [{ key: "wer", label: "Wer bist du?", href: "#/wer" }];
+    if (parentLike) items.push({ key: "eltern", label: "Aufgaben", href: "#/eltern" });
+    items.push({
+      key: "einkauf",
+      label: "Einkauf",
+      href: memberId ? `#/einkauf/${encodeURIComponent(memberId)}` : "#/einkauf",
+    });
+    if (parentLike) items.push({ key: "einstellungen", label: "Einstellungen", href: "#/einstellungen" });
+    return items.map((i) => ({ ...i, current: i.key === here }));
+  }
+
+  /** Fills the header's <nav>: the brand link first, then the entries; the current page gets aria-current. */
+  function render(nav, state, doc = nav.ownerDocument) {
+    nav.textContent = "";
+    const brand = doc.createElement("a");
+    brand.className = "brand";
+    brand.textContent = "Haushelden";
+    brand.setAttribute("href", state.kind ? "#/wer" : "#/anmelden");
+    nav.append(brand);
+    for (const item of navItems(state)) {
+      const a = doc.createElement("a");
+      a.textContent = item.label;
+      a.setAttribute("href", item.href);
+      a.setAttribute("data-nav", item.key);
+      if (item.current) a.setAttribute("aria-current", "page");
+      nav.append(a);
+    }
+  }
+
+  return { navItems, render, routeName };
+});

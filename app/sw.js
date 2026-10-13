@@ -37,6 +37,7 @@ const FILES = [
   "js/rhythm.js",
   "js/shop-learning.js",
   "js/routes.js",
+  "js/shellnav.js",
   "js/app.js",
   "js/screens/home.js",
   "js/screens/routinen.js",

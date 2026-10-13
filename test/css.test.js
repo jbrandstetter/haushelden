@@ -30,9 +30,10 @@ test("text is selectable: only controls and tap tiles switch selection off, neve
   assert.ok(selectors.includes("button"), "buttons are still not selectable");
 });
 
-test("the navigation row of the parents' view is styled where it actually sits (not under .eltern)", () => {
-  assert.ok(rule(".topnav"), "an unscoped .topnav rule exists");
-  assert.equal(css.includes(".eltern .topnav"), false);
+test("the header navigation is styled (it is rendered by the shell, not by a single screen)", () => {
+  assert.ok(rule(".shellbar nav"), "a .shellbar nav rule exists");
+  assert.ok(rule('.shellbar nav a[aria-current="page"]'), "the current page is marked");
+  assert.equal(css.includes(".topnav"), false, "the one-off nav row is gone");
 });
 
 test("the stylesheet's braces are balanced", () => {

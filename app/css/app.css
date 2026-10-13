@@ -987,14 +987,23 @@ canvas#confetti {
   color: var(--subtext);
 }
 
-/* navigation row of the parents' view (a sibling of the .eltern container, so not scoped under it) */
-.topnav {
+/* header navigation (js/shellnav.js) */
+.shellbar nav {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 14px;
+  gap: 6px;
 }
-.topnav a {
-  text-decoration: none;
+.shellbar nav a {
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+.shellbar nav a.brand {
+  padding-left: 0;
+  color: var(--text);
+}
+.shellbar nav a[aria-current="page"] {
+  background: var(--card);
+  box-shadow: var(--shadow);
+  color: var(--text);
 }
