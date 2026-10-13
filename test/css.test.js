@@ -11,10 +11,23 @@ const rule = (selector) => {
   return at === -1 ? null : css.slice(at, css.indexOf("}", at) + 1);
 };
 
-test("text is selectable: the page body does not switch selection off", () => {
-  const body = rule("body");
-  assert.ok(body, "a body rule exists");
-  assert.equal(/user-select\s*:\s*none/.test(body), false);
+/** Selectors of every rule that switches text selection off. */
+const noSelectSelectors = (source) =>
+  [
+    ...source.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/([^{}]+)\{([^{}]*user-select\s*:\s*none[^{}]*)\}/g),
+  ].flatMap((m) =>
+    m[1]
+      .split(",")
+      .map((x) => x.trim())
+      .filter(Boolean),
+  );
+
+test("text is selectable: only controls and tap tiles switch selection off, never the page or its content", () => {
+  const selectors = noSelectSelectors(css);
+  for (const sel of selectors) {
+    assert.equal(/^(html|body|main|\*|#view)(\s|$|\.|:)/.test(sel), false, `user-select: none on ${sel}`);
+  }
+  assert.ok(selectors.includes("button"), "buttons are still not selectable");
 });
 
 test("the navigation row of the parents' view is styled where it actually sits (not under .eltern)", () => {
