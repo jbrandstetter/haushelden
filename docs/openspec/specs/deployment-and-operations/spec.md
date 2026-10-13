@@ -90,6 +90,11 @@ A release MUST be a git tag in this repository. Deployment MUST install the tagg
 `pb_hooks/` into the container, apply migrations, and restart PocketBase, driven by the provisioning code in the private
 homelab repository. Deployment MUST take a backup immediately before applying migrations.
 
+#### Scenario: First install
+
+- **WHEN** a release is deployed on a data directory that has no database yet
+- **THEN** the pre-deploy backup is skipped with a log line saying so, the migrations create the database, the service starts and `/api/health` reports healthy
+
 #### Scenario: Deploying a release
 
 - **WHEN** the maintainer deploys tag `v1.0.1`

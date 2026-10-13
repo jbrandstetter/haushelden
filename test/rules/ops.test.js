@@ -175,6 +175,65 @@ test("scenario: retention removes snapshots older than HH_BACKUP_RETENTION_DAYS 
   });
 });
 
+test("scenario: the first deploy on an empty data directory skips the backup, migrates and starts the service", async () => {
+  const work = h.tmpDir("ops-first");
+  const data = path.join(work, "data"); // does not exist yet
+  const install = path.join(work, "install");
+  const target = path.join(work, "backups");
+  const src = path.join(work, "src");
+  const pid = path.join(work, "pb.pid");
+  const port = PORT + 3;
+  try {
+    fs.mkdirSync(src);
+    for (const part of ["app", "pb_migrations", "pb_hooks"])
+      fs.cpSync(path.join(h.ROOT, part), path.join(src, part), { recursive: true });
+    const git = (...a) => spawnSync("git", ["-C", src, ...a], { encoding: "utf8" });
+    git("init", "-q");
+    git("add", "-A");
+    git("-c", "user.name=t", "-c", "user.email=t@example.test", "commit", "-qm", "release");
+    git("tag", "v1.0.0");
+    const start = path.join(work, "start.sh");
+    fs.writeFileSync(
+      start,
+      `#!/bin/bash\nnohup "${h.BINARY}" serve --http=127.0.0.1:${port} --dir="${data}" --migrationsDir="${install}/pb_migrations" --hooksDir="${install}/pb_hooks" >/dev/null 2>&1 &\necho $! > "${pid}"\n`,
+      { mode: 0o755 },
+    );
+    const stopSh = path.join(work, "stop.sh");
+    fs.writeFileSync(stopSh, `#!/bin/bash\n[ -f "${pid}" ] && kill "$(cat "${pid}")" ; sleep 1\n`, {
+      mode: 0o755,
+    });
+
+    const d = run(path.join(h.ROOT, "scripts", "deploy.sh"), ["v1.0.0"], {
+      HH_SRC_DIR: src,
+      HH_INSTALL_DIR: install,
+      HH_PB_BIN: h.BINARY,
+      HH_DATA_DIR: data,
+      HH_BACKUP_TARGET: target,
+      HH_HEALTH_URL: `http://127.0.0.1:${port}/api/health`,
+      HH_STOP_CMD: stopSh,
+      HH_START_CMD: start,
+    });
+    assert.equal(d.status, 0, d.stdout + d.stderr);
+    assert.match(d.stdout, /msg="first install: no database yet, nothing to back up" tag=v1\.0\.0/);
+    assert.match(d.stdout, /msg="deploy finished, service healthy" tag=v1\.0\.0/);
+    assert.equal(
+      fs.existsSync(target) ? snapshots(target).length : 0,
+      0,
+      "no snapshot of a database that does not exist",
+    );
+    assert.ok(fs.existsSync(path.join(data, "data.db")), "the migrations created the database");
+    assert.equal((await h.api(port, "GET", "/api/health")).status, 200);
+  } finally {
+    try {
+      process.kill(Number(fs.readFileSync(pid, "utf8")), "SIGTERM");
+    } catch {
+      // already stopped
+    }
+    await new Promise((r) => setTimeout(r, 300));
+    h.rmrf(work);
+  }
+});
+
 test("scenario: deploy of a tag takes a pre-deploy backup, installs files, migrates and checks health", async () => {
   const work = h.tmpDir("ops-deploy");
   const data = path.join(work, "data");
