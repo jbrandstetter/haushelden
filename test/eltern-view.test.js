@@ -5,7 +5,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { createDocument } = require("./helpers/fake-dom-nodes.js");
-const { buildView } = require("../app/js/screens/eltern.js");
+const { buildView, topNav } = require("../app/js/screens/eltern.js");
 
 const MON = "2026-10-12";
 const SUN = "2026-10-18";
@@ -222,4 +222,13 @@ test("user-supplied titles are rendered as text, never as markup", () => {
   const { root } = render({ todos: [todo({ title: '<img src=x onerror="alert(1)">' })] });
   assert.equal(root.querySelectorAll("img").length, 0);
   assert.equal(root.querySelector(".tt").textContent, '<img src=x onerror="alert(1)">');
+});
+
+test("navigation: the parents' view links to shopping (for this parent), settings and back to Wer bist du?", () => {
+  const doc = createDocument();
+  const nav = topNav(doc, "mem1");
+  const href = (role) => nav.querySelector(`[data-role="${role}"]`).getAttribute("href");
+  assert.equal(href("nav-shop"), "#/einkauf/mem1");
+  assert.equal(href("nav-settings"), "#/einstellungen");
+  assert.equal(href("nav-who"), "#/wer");
 });

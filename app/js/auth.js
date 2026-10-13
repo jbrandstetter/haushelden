@@ -16,7 +16,8 @@
   // Routes that need no session (hash routes, see routes.js).
   const PUBLIC_ROUTES = ["setup", "anmelden", "einladung"];
   // Routes only parents open (a family device sends the visitor to "Wer bist du?" and its PIN prompt).
-  const PARENT_ROUTES = ["einstellungen"];
+  // Parent-only screens: a plain family-device session is sent back to "Wer bist du?" (the server rules enforce it anyway).
+  const PARENT_ROUTES = ["einstellungen", "eltern", "routinen", "maskottchen", "bereiche", "gelernt"];
 
   /** Reads the claims of a PocketBase token without verifying it (the server verifies). Null when unreadable. */
   function decodeToken(token) {
@@ -54,7 +55,7 @@
     if (!kind) return PUBLIC_ROUTES.includes(name) ? null : "#/anmelden";
     if (name === "anmelden" || name === "setup") return "#/wer";
     if (kind === "device" && PARENT_ROUTES.includes(name)) return "#/wer";
-    if (name === "" && (kind === "device" || kind === "pin")) return "#/wer"; // enrolled iPads start at "Wer bist du?"
+    if (name === "") return "#/wer"; // everybody signed in starts at "Wer bist du?" (the shell's start page is only a placeholder)
     return null;
   }
 

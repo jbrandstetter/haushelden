@@ -83,7 +83,11 @@ test("Unenrolled device: only the sign-in screens are reachable without a sessio
 test("Enrolled iPad starts at Wer bist du?; signed-in users skip the sign-in screens", () => {
   assert.equal(flowLib.guard("", "device"), "#/wer");
   assert.equal(flowLib.guard("#/", "pin"), "#/wer");
-  assert.equal(flowLib.guard("", "parent"), null);
+  assert.equal(flowLib.guard("", "parent"), "#/wer");
+  assert.equal(flowLib.guard("#/eltern", "parent"), null);
+  assert.equal(flowLib.guard("#/eltern", "pin"), null);
+  for (const route of ["eltern", "routinen", "maskottchen", "bereiche", "gelernt", "einstellungen"])
+    assert.equal(flowLib.guard(`#/${route}`, "device"), "#/wer", route);
   assert.equal(flowLib.guard("#/anmelden", "parent"), "#/wer");
   assert.equal(flowLib.guard("#/setup", "device"), "#/wer");
   assert.equal(flowLib.guard("#/wer", "device"), null);

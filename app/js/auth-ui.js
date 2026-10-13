@@ -218,7 +218,7 @@
         pin.input.value = "";
         return result;
       },
-      onDone: () => go(`#/ich/${member.id}`),
+      onDone: () => go("#/eltern"),
     });
     const cancel = el(doc, "button", "link", "Abbrechen");
     cancel.type = "button";
@@ -320,7 +320,7 @@
             );
           } else if (own && own.member === m.id) {
             // A signed-in parent opens their own view; the other parent needs the PIN on a family device.
-            adultsBox.append(profile(m, "adults", (member) => go(`#/ich/${member.id}`)));
+            adultsBox.append(profile(m, "adults", () => go("#/eltern")));
           }
         }
       }
@@ -360,7 +360,17 @@
       day.textContent = "Wird geladen …";
       return;
     }
-    return ctx.data.subscribe("members", renderMembers);
+    // Everybody can add to the shopping lists (SPEC-0005 "Entry Points"); a family device has no member of its own.
+    let shop = null;
+    if (typeof HH !== "undefined" && HH.shop && HH.shop.entryButton) {
+      shop = HH.shop.entryButton({ data: ctx.data, who: own && own.member, doc });
+      wrap.insertBefore(shop.el, overlay);
+    }
+    const off = ctx.data.subscribe("members", renderMembers);
+    return () => {
+      off();
+      if (shop) shop.dispose();
+    };
   }
 
   return { setup, anmelden, einladung, wer };
