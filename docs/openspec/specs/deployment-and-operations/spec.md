@@ -1,7 +1,7 @@
 ---
 status: draft
 date: 2026-10-11
-implements: [ADR-0001, ADR-0002, ADR-0004]
+implements: [ADR-0001, ADR-0002, ADR-0004, ADR-0009]
 requires: [SPEC-0001]
 ---
 
@@ -54,6 +54,7 @@ required keys MUST stop startup with a message naming the key.
 | `HH_BACKUP_RETENTION_DAYS` | no (default `14`) | Number of daily backups kept |
 | `HH_PB_VERSION` | yes in production | Pinned PocketBase version |
 | `HH_DEV_ADMIN_EMAIL`, `HH_DEV_ADMIN_PASSWORD` | development only | Fake local superuser created by the local start script and used by the seed script; ignored in production |
+| `HH_DEV_PARENT_PASSWORD`, `HH_DEV_PARENT_PIN`, `HH_DEV_DEVICE_SECRET` | development only | Fake secrets of the seeded parents and device (the password needs the 12-character minimum); never used in production |
 | `HH_CALDAV_URL`, `HH_CALDAV_USER`, `HH_CALDAV_PASSWORD` | later | Family calendar source (SPEC-0004, later) |
 | `HH_ASSISTANT_TOKEN`, `HH_LLM_ENDPOINT` | later | Household assistant (SPEC-0006, later) |
 
@@ -136,9 +137,11 @@ iPhone on mobile data installs the PWA and syncs.
 
 ### Requirement: Backup and Restore
 
-A nightly job MUST write a consistent snapshot of the data directory (PocketBase backup or SQLite online backup, never a
-plain copy of a live database file) to `HH_BACKUP_TARGET` and delete snapshots older than
-`HH_BACKUP_RETENTION_DAYS`. A written restore procedure MUST exist in this repository and MUST be exercised before
+A nightly job MUST write a consistent snapshot of the data directory (SQLite online backup of the databases plus the file
+storage, packed as `haushelden-<UTC time>.tar.gz` and moved into place atomically; never a plain copy of a live database file)
+to `HH_BACKUP_TARGET` (a directory path) and delete snapshots older than `HH_BACKUP_RETENTION_DAYS` (by age, so "at least 14 daily
+versions" holds while the nightly job keeps running). Restoring refuses a non-empty data directory unless forced, and a forced
+restore moves the old files aside instead of deleting them. The container needs the `sqlite3` command-line tool. A written restore procedure MUST exist in this repository and MUST be exercised before
 go-live and after each PocketBase upgrade or schema-changing release.
 
 #### Scenario: Nightly backup
@@ -177,6 +180,35 @@ tokens, device secrets or full request bodies, and MUST retain logs for 14 days.
 
 - **WHEN** a sign-in fails
 - **THEN** the log records time, auth collection, client address and reason, but not the password
+
+### Requirement: Quiet Throwaway Servers
+
+Every throwaway server started by the tests and the smoke script MUST run on its own port and a temporary data directory, and
+MUST NOT touch the developer's desktop: PocketBase opens its first-admin page in the default browser when it starts on a data
+directory without a superuser, so these servers run with no-op `open`/`xdg-open` launchers first on the PATH
+(`scripts/no-browser.js`). The developer's own server (`npm start`) creates the superuser first and is not affected.
+
+#### Scenario: Server on an empty data directory
+
+- **WHEN** a test starts PocketBase on a data directory without a superuser
+- **THEN** the attempt to open the installer page is recorded by the stub and no browser window or tab opens
+
+### Requirement: Test Layers and Merge Gate
+
+The repository MUST keep its tests in layers by what they need (ADR-0009): pure unit and fake-DOM screen tests that need no
+server, and PocketBase-backed rules, hook and migration tests under `test/rules/` that run in the CI job with the pinned
+binary and fail loudly when a prerequisite is missing. CI MUST run on every pull request (format check, lint, unit tests, smoke
+test, rules tests). A pull request MUST be merged only when a CI run for its exact head commit has succeeded.
+
+#### Scenario: Missing prerequisite
+
+- **WHEN** the PocketBase binary or the `sqlite3` tool is missing where `test/rules/` runs
+- **THEN** a "prerequisites" test fails with the command to run, and nothing is skipped silently
+
+#### Scenario: Branch behind main
+
+- **WHEN** a pull request is behind `main`
+- **THEN** `main` is merged into the branch, the full suite passes locally, and CI passes on the resulting commit before the merge
 
 ### Requirement: Error Handling Standards
 

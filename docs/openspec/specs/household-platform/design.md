@@ -48,11 +48,12 @@ below reviewable and testable.
 |------------|--------|----------------------|-------|
 | `members` | full | read | role, name, emoji, colour, pin_hash (hidden field) |
 | `routines` (SPEC-0002) | full | read | |
-| `routine_done` (SPEC-0002) | full | create/delete where `member.role = "kid"`; read today | unique (routine, member, day) |
-| `todos`, `areas` (SPEC-0003) | full | none | |
+| `routine_done` (SPEC-0002) | full | create/delete where `member.role = "kid"`; read all days | unique (routine, member, day); rules cannot compare against the household date and the week strip needs past ticks |
+| `todos`, `areas` (SPEC-0003) | full | none | `areas.owner` must be a parent member or empty; `todos.area` is a relation to `areas`, cleared when the area is deleted |
+| `invites` | none (hook routes only, token stored hashed) | none | single-use, 48 hours |
 | `lists` (SPEC-0005) | full | read | |
-| `shop_items` (SPEC-0005) | full | read, create, update `bought` | `by` must be a member; kids cannot delete lists |
-| `purchases` (SPEC-0005) | read, delete (reset) | none (written by hook) | maintained server-side on tick/un-tick |
+| `shop_items` (SPEC-0005) | full | read, create, update `bought` | `by` must be a member; devices cannot delete items or lists (only parents use "Einkauf fertig") |
+| `purchases` (SPEC-0005) | read, delete (reset) | none (written by hook) | maintained server-side on tick/un-tick (ADR-0006); unique on list, key, day |
 | `settings` (mascot, auto-refill, time zone override) | full | read | single record |
 | `mascot_lines` (SPEC-0006, later) | read, approve | read approved for today | |
 | `proposals` (SPEC-0006, later) | full | none | |
@@ -60,11 +61,25 @@ below reviewable and testable.
 
 ### Custom routes under `/api/hh/`
 
-**Choice**: Six small hook routes for what PocketBase does not do by itself: `setup` (one-time first parent),
-`invite` / `invite/accept` (second parent), `devices/enroll` (create a device account on behalf of the signed-in
-parent), `pin` (verify a parent PIN from a device, issue a 15-minute parent token), `export` (all household data as
-JSON). Everything else uses PocketBase's standard collection and realtime API.
+**Choice**: Small hook routes for what PocketBase does not do by itself, grouped by capability:
+- accounts: `POST setup` (one-time first parent), `POST invite` and `POST invite/accept` (second parent),
+  `POST devices/enroll` (create a device account on behalf of the signed-in parent), `POST pin` (verify a parent PIN from a
+  device, issue a 15-minute non-refreshable parent token), `PUT pin` (set own PIN, password re-entry),
+  `POST sessions/revoke` (sign out everywhere);
+- household: `GET config` (household time zone), `GET export` (all household data as JSON, credentials scrubbed);
+- shopping: `POST refill` (refill a list when it is opened), `POST purchases/reset` (parents).
+Everything else uses PocketBase's standard collection and realtime API. Record hooks add the server-side rules that
+collection rules cannot express (member guards, purchase recording, sticky "bought", deferral after an unbought removal).
 **Rationale**: Keeps custom code to the edges where the household's rules differ from a generic backend.
+
+### Sessions are stateless; revoke by rotating the key (ADR-0005)
+
+**Choice**: PocketBase's signed tokens stay as they are. "Sign out everywhere" rotates the account's signing key. PIN
+sessions carry `refreshable: false` and a refresh hook rejects them. The failed-attempt limiter keeps its counters in the
+application store (`$app.store()`), because PocketBase 0.40 has no separate counter store.
+**Rationale**: Immediate revocation and bounded PIN sessions without a custom session table; the cost is no list of
+sessions.
+**Alternatives considered**: see ADR-0005 (a `sessions` collection, cookie sessions).
 
 ### Kid access via device accounts (ADR-0003)
 
@@ -150,7 +165,16 @@ Rollback: the prototype keeps working from GitHub Pages with its own local data 
 
 ## Open Questions
 
-- Should a parent session on the family iPad (after PIN) be allowed to enroll or remove devices, or only a session on
-  the parent's own phone?
-- Do the parents want e-mail-based password reset (needs outgoing mail configuration) or is "the other parent resets
-  it in the admin UI" enough for v1?
+- Do the parents want e-mail-based password reset (needs outgoing mail configuration), or is "the other parent resets it in
+  the admin UI" enough for v1? Not built; the admin UI is LAN-only.
+- Should `members.role` become editable (promote a kid, demote a parent)? It would need to keep the invite and last-parent
+  rules intact; v1 shows it read-only.
+- Which header carries the real client address behind the reverse proxy, and how does PocketBase trust it (go-live, issue #21)?
+
+## Resolved During the Build
+
+- A PIN session cannot enroll or remove devices or set a PIN; those need the parent's own session (ADR-0005).
+- Parent accounts cannot be removed in v1, which also protects the last parent.
+- There is no public "is setup needed" endpoint; the sign-in screen links to "Erste Einrichtung" instead.
+- A removed device is not answered with 401 on every request but with empty results (a deleted principal's token is a guest);
+  the app detects it when the token refresh fails at launch and when returning to the foreground.

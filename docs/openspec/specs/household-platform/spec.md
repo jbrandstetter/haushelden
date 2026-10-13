@@ -1,7 +1,7 @@
 ---
 status: draft
 date: 2026-10-11
-implements: [ADR-0001, ADR-0002, ADR-0003, ADR-0004]
+implements: [ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005]
 ---
 
 # SPEC-0001: Household Platform
@@ -12,6 +12,7 @@ implements: [ADR-0001, ADR-0002, ADR-0003, ADR-0004]
 - **Implements:** [ADR-0002](../../../adrs/ADR-0002-remote-access-via-reverse-proxy.md) — remote access via the homelab reverse proxy and a configured hostname
 - **Implements:** [ADR-0003](../../../adrs/ADR-0003-kid-access-via-device-accounts.md) — kid access via enrolled device accounts
 - **Implements:** [ADR-0004](../../../adrs/ADR-0004-configuration-outside-public-repo.md) — deployment addresses and secrets stay in the private homelab repository
+- **Implements:** [ADR-0005](../../../adrs/ADR-0005-stateless-sessions-and-short-pin-sessions.md) — stateless sessions, sign out everywhere, short non-refreshable PIN sessions
 
 ## Overview
 
@@ -42,6 +43,7 @@ one week without data loss.
 | SPEC-0005 Shopping Lists | all | — |
 | SPEC-0006 Household Assistant | — | all |
 | SPEC-0007 Deployment and Operations | all | — |
+| SPEC-0008 App Shell and Navigation | all | — |
 
 #### Scenario: Building v1 without the assistant
 
@@ -99,17 +101,33 @@ valid for 48 hours, and add the kids as members.
 
 Each parent MUST have an individual account. In v1, parents MUST authenticate with an e-mail address and a password of
 at least 12 characters; passkeys MAY be added later. A parent session MUST remain valid on that device for at most
-30 days without activity and MUST be revocable by either parent.
+30 days without activity and MUST be revocable by its owner with "sign out everywhere" (ADR-0005).
 
 #### Scenario: Parent signs in on a new phone
 
 - **WHEN** a parent opens the app on a device that has never been used and signs in
-- **THEN** the parent's view opens and the session is listed under that parent's active sessions
+- **THEN** the parent's view opens (the session list originally specified here cannot be built with PocketBase's stateless tokens; see ADR-0005 and "Sign Out Everywhere")
 
 #### Scenario: Revoking a lost phone
 
-- **WHEN** a parent revokes the sessions of a lost phone
-- **THEN** every subsequent request from that phone MUST be rejected with an authentication error
+- **WHEN** a parent uses "sign out everywhere" from another device after losing a phone
+- **THEN** every token of that parent's account, including the lost phone's, stops working: protected data requests from that phone return no data and its next token refresh fails, so it shows the sign-in screen
+
+### Requirement: Sign Out Everywhere
+
+A signed-in parent MUST be able to end every session of their own account at once (`POST /api/hh/sessions/revoke`, offered as
+"Überall abmelden"). The call MUST invalidate all tokens of that account, including the one used to make it, and MUST
+NOT affect other accounts or enrolled devices. A list of individual sessions is not provided in v1.
+
+#### Scenario: Signing out everywhere
+
+- **WHEN** a parent taps "Überall abmelden" on their phone
+- **THEN** the phone shows the sign-in screen, and a token the parent held on any other device is rejected on its next use
+
+#### Scenario: Other accounts are unaffected
+
+- **WHEN** one parent signs out everywhere
+- **THEN** the other parent's session and the enrolled family devices keep working
 
 ### Requirement: Device Enrollment and Removal
 
@@ -132,10 +150,12 @@ next time the app starts or refreshes its session.
 ### Requirement: Kid Access on Enrolled Devices
 
 Kids MUST NOT need a password. An enrolled device MAY open any kid profile without further authentication. A request
-made from a device account MUST be limited to: reading the household's members, routines and that day's ticks;
+made from a device account MUST be limited to: reading the household's members, routines and routine ticks (all days,
+because collection rules cannot compare against the household date and the week strip needs past ticks);
 creating and deleting routine ticks for kid members; reading the mascot settings and lines; reading shopping lists and
 adding, ticking and un-ticking shopping items. Opening a parent view on an enrolled device MUST require that parent's
-6-digit PIN, which yields a parent session of at most 15 minutes.
+6-digit PIN, which yields a parent session of at most 15 minutes. A PIN session MUST NOT be refreshable into a longer
+session, and MUST NOT be able to enroll devices or set a PIN (setting a PIN needs the password again).
 
 #### Scenario: Kid opens their board
 
@@ -146,6 +166,11 @@ adding, ticking and un-ticking shopping items. Opening a parent view on an enrol
 
 - **WHEN** a kid taps a parent profile on an enrolled family iPad
 - **THEN** the app MUST ask for that parent's PIN before showing any parent data
+
+#### Scenario: PIN session cannot be extended
+
+- **WHEN** a client tries to refresh a parent token that was issued through the PIN
+- **THEN** the refresh is rejected, and after 15 minutes the device is back at its own session and "Wer bist du?"
 
 #### Scenario: Device reads to-dos
 
@@ -159,14 +184,35 @@ adding, ticking and un-ticking shopping items. Opening a parent view on an enrol
 
 ### Requirement: Household Settings
 
-Parents MUST have a settings screen to manage members (name, avatar, colour, role), set their own PIN, see and remove
-enrolled devices, see and revoke their own sessions, and export data. Capability settings (routines, mascot, areas,
-lists) are specified in their own specs and SHOULD appear on the same screen.
+Parents MUST have a settings screen (`#/einstellungen`, parents only) to manage members (name, avatar and colour; add and
+remove kids), set their own PIN, see and remove enrolled devices (name and last use), sign out everywhere, and export
+data. Roles are shown but not editable. The settings screen SHOULD link to the screens of the other capabilities
+(routines, mascot, areas, learned overview), which are specified in their own specs.
+
+Member rules, enforced by the server and not only by the screen: parent members are created only through first-run setup
+and invitations and cannot be added through the collection API; a member's role cannot be changed; parent members cannot
+be removed in v1 (so the last parent is always protected). Removing a kid deletes their routines and routine ticks and
+keeps shopping items and areas (to-dos belong to parents), and the confirmation says so.
 
 #### Scenario: Changing a kid's colour
 
 - **WHEN** a parent changes the daughter's colour to mauve in settings
 - **THEN** her tiles, markers and avatar use mauve on every device within the live-sync window
+
+#### Scenario: Removing a kid
+
+- **WHEN** a parent removes a kid member and confirms
+- **THEN** the member, their routines and their ticks are gone, shopping items they added remain, and the other kid is unaffected
+
+#### Scenario: The last parent cannot be removed
+
+- **WHEN** anyone requests removal of a parent member through the app or the API
+- **THEN** the request is refused and the data is unchanged
+
+#### Scenario: Kid cannot reach the settings
+
+- **WHEN** a family-device session opens the settings address
+- **THEN** it is sent to "Wer bist du?" and the server refuses every member change
 
 ### Requirement: Household Day and Time Zone
 
@@ -254,12 +300,27 @@ to the storage format.
 
 ### Requirement: Data Export
 
-Parents MUST be able to export all household data as one JSON file.
+Parents MUST be able to export all household data as one JSON file (`GET /api/hh/export`, parent session required). The file
+MUST carry the export format `version`, the household time zone `tz`, `exported_at`, and one list per household
+collection (members, routines, routine ticks, to-dos, areas, lists, shop items, purchases, settings). It MUST NOT contain
+credentials: the `parents`, `devices` and `invites` collections are not exported, and any field that looks like a secret
+(PIN hash, password hash, token, token key, secret) is scrubbed at any depth. Devices and anonymous callers MUST be
+refused. Exports are limited to 20 per 15 minutes per parent.
 
 #### Scenario: Export
 
 - **WHEN** a parent taps "Export" in settings
 - **THEN** a JSON file containing members, routines, to-dos, areas, lists, purchase history and settings is downloaded
+
+#### Scenario: No credentials in the file
+
+- **WHEN** a parent exports a household that has PINs, devices and open invites
+- **THEN** the file contains no PIN hashes, password hashes, tokens, device secrets or invite tokens
+
+#### Scenario: A device asks for the export
+
+- **WHEN** a family-device session requests `GET /api/hh/export`
+- **THEN** the request is refused
 
 ### Requirement: Prototype Import
 
@@ -321,7 +382,12 @@ All endpoints MUST require authentication by default. Public (unauthenticated) e
 | `POST /api/hh/invite/accept` | Public, but requires a single-use invite token | Second parent creates their account from the invite link |
 | `GET /api/health` | Public | Health probe for monitoring; returns no household data |
 | `POST /api/hh/devices/enroll` | Required (parent) | — |
-| `POST /api/hh/pin` (PIN → short parent session) | Required (device) | — |
+| `POST /api/hh/pin` (verify a PIN → 15-minute parent session) | Required (device) | — |
+| `PUT /api/hh/pin` (set own PIN, password re-entry) | Required (parent, not a PIN session) | — |
+| `POST /api/hh/sessions/revoke` (sign out everywhere) | Required (parent) | — |
+| `GET /api/hh/config` (household time zone) | Required | — |
+| `POST /api/hh/refill` (refill a shopping list) | Required (parent or device) | — |
+| `POST /api/hh/purchases/reset` | Required (parent) | — |
 | `POST /api/hh/invite` | Required (parent) | — |
 | `GET /api/hh/export` | Required (parent) | — |
 | `GET/POST/PATCH/DELETE /api/collections/{collection}/records*` for all household collections | Required; per-collection rules by role in the design | — |
@@ -333,7 +399,10 @@ All endpoints MUST require authentication by default. Public (unauthenticated) e
 Parent sign-in, device sign-in, PIN entry, setup and invite acceptance MUST be limited to 5 failed attempts per account
 (or per client address for setup and invite) per 15 minutes, after which further attempts are rejected until the window
 passes. All other endpoints MUST be limited to 120 requests per minute per session, which is well above normal family
-use and stops a runaway client loop. The reverse proxy SHOULD apply the same limits as a second layer.
+use and stops a runaway client loop. Data exports are limited to 20 per 15 minutes per parent. The failed-attempt
+counters live in the application store of the running server, so a restart clears them. Behind the reverse proxy the
+server MUST be told which header carries the real client address (ADR-0002), otherwise every client counts as the proxy.
+The reverse proxy SHOULD apply the same limits as a second layer.
 
 ### Security Headers
 

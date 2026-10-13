@@ -57,7 +57,9 @@ and editable exactly as in list mode.
 ### Requirement: Entry Sources
 
 The calendar MUST include: to-dos with that due date (SPEC-0003), kids' routine items of kind `hobby` (SPEC-0002), and
-routine items assigned to parents. Kids' routine items of kind `chore` MUST NOT appear, to keep the calendar readable.
+routine items assigned to parents (a routine for both parents appears once, in a neutral colour, with the owner "beide"). Kids'
+routine items of kind `chore` MUST NOT appear, to keep the calendar readable. Completed to-dos produce no marker but stay in the
+day's agenda so they can be undone.
 In production the calendar MUST also include events from the household's shared iCloud calendar.
 
 #### Scenario: Chores stay out

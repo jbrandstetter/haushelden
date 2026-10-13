@@ -72,9 +72,14 @@ and a date picker), assignee and area, with a delete action. Shortcuts that reso
 
 ### Requirement: Areas of Responsibility
 
-The household SHALL have a list of areas (emoji, name, owner). The owner MUST be one parent or unassigned. Parents MUST
+The household SHALL have a list of areas (emoji, name, owner); seven generic starter areas (Haus & Garten, Auto, Finanzen &
+Versicherungen, Schule & Kinder, Gesundheit & Ärzte, Hobbys & Fahrdienste, Technik & Smart Home) exist without an owner.
+The owner MUST be one parent or unassigned (the server refuses a kid as owner), and deleting an owner member leaves the
+area unowned. Parents MUST
 be able to add, rename and delete areas and set owners; deleting an area MUST keep its to-dos, without an area. Each
-parent's view MUST show all areas with owner and number of open to-dos, and MUST highlight the areas that parent owns.
+parent's view MUST show all areas with owner and the number of open to-dos in that area (household-wide: the count includes
+the other parent's own to-dos, while the list itself shows the parent's own and shared to-dos), and MUST highlight the
+areas that parent owns. Areas are managed on their own screen (`#/bereiche`), which links back to the settings.
 Selecting an area MUST filter the to-do list (and the calendar, SPEC-0004) to that area until cleared.
 
 #### Scenario: Assigning an owner
