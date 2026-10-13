@@ -110,3 +110,17 @@ The prototype's `items` and `done` map directly onto `routine` and `routine_done
 - Should the 12-year-old get her own phone profile in addition to the shared iPad?
 - Do weekend chores need a different board look (e.g., "Wochenende" header) or is the same board fine?
 - Does the family want a fortnightly kid chore soon, which would justify RRULE recurrence?
+
+## As Built: Notes and Known Gaps
+
+- The router uses only the first hash segment, so the routine editor and mascot picker are top-level routes (`#/routinen`,
+  `#/maskottchen`) that the settings screen links to; the kid board is `#/kind/<member id>`.
+- Device accounts read all routine ticks, not only today's (collection rules cannot compare against the household date, and
+  the week strip needs past days). Devices can create or delete a tick only for a kid member; a rule that the routine must
+  be assigned to that kid is not expressible in collection rules and is not enforced (the UI never offers it).
+- The streak shows from one day (the prototype showed it from two). Past days are judged against the current routines and
+  weekdays.
+- Speech cadence is a pure, tested function (`app/js/board.js`); the approved-lines seam (`approvedLines()`) is empty until the
+  household assistant (SPEC-0006) exists, so the built-in German `LINES` pool is used.
+- Known gap: two devices ticking the same item while offline create records with different ids; the unique index rejects the
+  second one on replay and the outbox keeps it flagged as "nicht synchronisiert". The data layer does not resolve this yet.

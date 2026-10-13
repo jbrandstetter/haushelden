@@ -43,13 +43,19 @@ alternating, a specific parent, or both parents. Only parents MAY create, edit o
 ### Requirement: Routine Management
 
 Parents MUST have a screen listing all routine items where they can add, edit and delete items, setting emoji, title,
-hint, time, kind, weekdays and assignment. Changes MUST apply from the next time the boards render; ticks already
-recorded MUST be kept.
+hint, an optional time of day (HH:MM), kind, weekdays and assignment (the routines screen is `#/routinen`, the mascot picker
+`#/maskottchen`). Changes MUST apply from the next time the boards render; ticks already recorded MUST be kept when a
+routine is edited or moved, and are removed together with the routine when it is deleted.
 
 #### Scenario: Moving piano to Wednesday
 
 - **WHEN** a parent changes "Klavierstunde" from Tuesday to Wednesday
 - **THEN** it disappears from Tuesday's board and appears on Wednesday's, and last Tuesday's tick stays in the week strip
+
+#### Scenario: Deleting a routine
+
+- **WHEN** a parent deletes a routine that has ticks
+- **THEN** the routine and its own ticks are removed and other routines' ticks are untouched
 
 ### Requirement: Alternating Assignment
 
@@ -113,8 +119,10 @@ confetti) that the kid dismisses with one tap. Animations MUST be suppressed whe
 ### Requirement: Mascot Feedback
 
 The household mascot (an emoji animal with a name chosen by the family) MUST react visually to every tick. It SHALL
-speak a line aloud in German, using the device's speech synthesis, on the first tick of the day, on completion, and on
-roughly one in three other ticks; it MUST NOT speak on every tick. Sound MUST be switchable per device.
+speak a line aloud in German, using the device's speech synthesis, on the first tick of the day (kept per device and kid),
+on completion, and otherwise rarely: never straight after it has spoken, with a one in four chance on later ticks, and
+always after three silent ticks in a row. It MUST NOT speak on every tick. The opening greeting is shown but not spoken
+(speech is tied to ticks); tapping the mascot itself speaks a line. Sound MUST be switchable per device.
 Lines MUST come from the approved lines for that kid and day (SPEC-0006); when none are approved, the board MUST use the
 built-in fallback pool.
 

@@ -79,3 +79,10 @@ Greenfield on the server side. The prototype's calendar logic (`calEntries`) por
 - Which iCloud calendar is "the family calendar" — one shared calendar, or several (one per person)?
 - Should approved assistant events (e.g., soccer games from WhatsApp) go into iCloud or stay Haushelden-only?
 - Are school holidays worth importing (Bavarian holiday ICS) so routines can pause automatically?
+
+## As Built: Notes and Known Gaps
+
+- The calendar is a computed view (pure functions in `app/js/calendar.js`) inside the parents' view, with the mode switch
+  persisted per device in local storage; the agenda reuses the list view's row and editor code.
+- `externalEntries` in `calendar.js` is the marked seam for the iCloud source. SPEC-0004 "Entry Sources" says production must
+  include iCloud events while SPEC-0001 "Version 1 Scope" excludes them from v1; v1 builds only the seam.

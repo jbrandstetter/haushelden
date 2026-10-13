@@ -96,3 +96,14 @@ import.
 - Reminder channel: Hermes message (Telegram today) or Web Push from the PWA?
 - Should completed to-dos older than N days be archived out of sync to keep devices light?
 - Should areas have a second "backup" contact?
+
+## As Built: Notes and Known Gaps
+
+- `todos.who` is a text field holding a parent member id or the literal `parents`; the create and update rules refuse a kid id
+  or an unknown id. The API lets either parent read and edit any to-do (as the spec requires); the screen shows a parent's own
+  and shared to-dos.
+- `todos.area` became a relation to `areas` without cascade, so deleting an area clears the field and keeps the to-dos. The
+  migration keeps values that name a real area and drops dangling ones. Devices have no access to `areas`.
+- The area card's open count is household-wide while the filtered list is per parent, so a card can show more than the list.
+  The spec was updated to say so; it is a product question whether the count should match the list.
+- Reminders and proposed to-dos (the household assistant) are not built; both follow after v1.

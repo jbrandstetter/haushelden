@@ -97,3 +97,15 @@ Prototype `lists`, `shop` and `hist` map directly; skip `hist` entries when the 
 - Should auto-refill be per list (on for Lebensmittel, off for dm)?
 - Is a store-aisle order wanted soon (requires the LLM normaliser or manual ordering)?
 - Does the family want a "we're in the store now" signal that tells the other parent to add items quickly?
+
+## As Built: Notes and Known Gaps
+
+- Decisions behind the build are ADR-0006 (server-side purchase recording and the "bought stays bought" version check via the
+  `X-HH-Seen` header) and ADR-0007 (median rhythm, hourly server refill, deferral on unbought removal).
+- `bought` is a household day string, so the data layer's boolean `sticky(true)` does not fit; a custom merge rule is registered
+  instead. The PocketBase JS runtime has no `Intl`, so hooks compute the household day from the time zone with `date`.
+- `purchases`: list (relation, cascade), name, key, day, item (text id), unique on (list, key, day), written only by hooks;
+  `shop_items` also carries `auto` and `skip_until` for the refill.
+- The learned overview (`#/gelernt`) and "reset purchase history" (`POST /api/hh/purchases/reset`) are parent-only.
+- Gaps: a kid-triggered "Einkauf fertig" is unspecified and not possible; a duplicate created offline on two devices is rejected
+  on replay and stays flagged in the outbox; item names are normalised only by case and whitespace.

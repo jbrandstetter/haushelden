@@ -1,6 +1,7 @@
 ---
 status: draft
 date: 2026-10-11
+implements: [ADR-0006, ADR-0007]
 requires: [SPEC-0001]
 ---
 
@@ -8,6 +9,8 @@ requires: [SPEC-0001]
 
 ## Graph Edges
 
+- **Implements:** [ADR-0006](../../../adrs/ADR-0006-server-side-purchase-recording-and-sticky-bought.md) — server-side purchase recording and the "bought stays bought" version check
+- **Implements:** [ADR-0007](../../../adrs/ADR-0007-server-side-auto-refill-and-purchase-rhythm.md) — median rhythm and server-side auto-refill
 - **Requires:** [SPEC-0001](../household-platform/spec.md) — members, kid access, live sync, offline queue, security baseline
 
 ## Overview
@@ -52,12 +55,21 @@ same list (case- and whitespace-insensitive) MUST NOT create a duplicate.
 
 Ticking an item MUST move it to an "in the cart" section and record a purchase for today; un-ticking it the same day
 MUST remove that purchase again. A "finish shopping" action MUST remove all ticked items of the current list. Ticking
-MUST work offline and sync later (SPEC-0001 Offline Operation).
+MUST work offline and sync later (SPEC-0001 Offline Operation). Purchases are recorded by the server in the same transaction as
+the tick (ADR-0006): a replayed tick records one purchase per item and day, an un-tick on an earlier day keeps the purchase,
+and an un-tick based on a stale version of the item MUST NOT un-buy it. The day recorded is the household day; a day sent by
+a device is accepted from 14 days in the past to one day ahead, so offline ticks keep their real day. Only parents can
+remove items and use "Einkauf fertig" (devices cannot delete).
 
 #### Scenario: In the store
 
 - **WHEN** a parent ticks Milch, Brot and Eier and taps "Einkauf fertig"
 - **THEN** the three items leave the list and each has one purchase recorded for today
+
+#### Scenario: A stale un-tick
+
+- **WHEN** a device that was offline un-ticks an item that another device has meanwhile bought
+- **THEN** the item stays bought and its purchase is kept
 
 ### Requirement: Purchase History and Rhythm
 
@@ -76,7 +88,9 @@ When automatic refill is enabled (the default), every item whose rhythm says it 
 purchase plus the rhythm minus one day — and that is not already on the list or in the cart MUST be added to its list
 automatically. Automatic items MUST be marked as such and MUST show the reason (rhythm and days since the last
 purchase). Removing an automatic item without buying it MUST defer it by half its rhythm (rounded up). Parents MUST be
-able to switch automatic refill off; then due items MUST be offered as suggestions instead.
+able to switch automatic refill off; then due items MUST be offered as suggestions instead. The refill runs on the server
+(an idempotent hourly job and when a list is opened, ADR-0007) so that several open devices never create duplicate automatic
+items; only parents can remove items, so a removal of an unbought automatic item is always a parent's.
 
 #### Scenario: Milk comes back
 
@@ -112,7 +126,8 @@ reset the purchase history.
 
 ### Requirement: Entry Points
 
-The shopping screen MUST be reachable from the "Wer bist du?" screen, from every kid board, and from each parent view.
+The shopping screen MUST be reachable from the header navigation (SPEC-0008) and from the "Wer bist du?" screen; a kid reaches
+it through "Wer bist du?" or the header, because the kid board has no button of its own in v1.
 When opened from a profile, items added there MUST be attributed to that member.
 
 #### Scenario: From the kid board

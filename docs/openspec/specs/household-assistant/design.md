@@ -115,3 +115,9 @@ auto-approval, shopping normalisation last.
 - Which weather source (local Home Assistant forecast entity or an open API) feeds the mascot context?
 - Manual or automatic mascot approval as the starting default?
 - Should ingestion also accept photos of paper notes from school (needs a local vision model)?
+
+## As Built: Status
+
+Not built in v1 (SPEC-0001 "Version 1 Scope"). The only seam in the code is `approvedLines()` in `app/js/board.js`, which returns
+no lines, so the kid board uses its built-in German line pool. The proposals inbox, the assistant identity, message ingestion
+and nightly line generation all follow after v1.

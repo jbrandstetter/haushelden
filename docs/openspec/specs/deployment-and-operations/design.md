@@ -117,3 +117,17 @@ sequenceDiagram
 
 - Which existing monitoring system gets the health and backup-age checks?
 - Does the reverse proxy already have a reusable rate-limit snippet for authentication paths, or does this need a new one?
+
+## As Built: Notes and Known Gaps
+
+- Backups use `sqlite3 .backup` on the databases (PocketBase's backup API would need superuser credentials as extra
+  configuration), with an integrity check; `HH_BACKUP_TARGET` accepts a directory path only (the `.env.example` comment that
+  said "path or URL" is wrong for v1). Retention is age-based. A rollback for a release with a migration is a documented manual
+  procedure (previous tag plus restore), not automated.
+- `scripts/deploy.sh <tag>` takes a pre-deploy backup first and aborts without changes if it fails, installs `app/`,
+  `pb_migrations/` and `pb_hooks/` from the tag, migrates, restarts and polls `/api/health`.
+- Logging: `pb_hooks/lib/log.js` writes key=value lines with a UTC `ts`, redacts keys that look like secrets, strips query
+  strings and logs failed sign-ins without credentials; PocketBase's own log retention is set to 14 days.
+- Test layers, throwaway servers and the merge gate are decided in ADR-0009; the setup of the real LXC, the units and the
+  timer lives in the private homelab repository.
+- Not tested: the systemd units under systemd, journald retention, the stale-backup alert, and the real LXC side.
