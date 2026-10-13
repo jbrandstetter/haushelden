@@ -36,6 +36,7 @@
         console.warn("auth: could not persist the session", { message: String(err) });
       }
       armPinTimer();
+      if (HH.app && HH.app.renderNav) HH.app.renderNav();
       if (started && other) return HH.app.connect();
     },
     async clear() {
@@ -45,6 +46,7 @@
       } catch {
         // storage unavailable: nothing persisted, nothing to remove
       }
+      if (HH.app && HH.app.renderNav) HH.app.renderNav();
       await HH.app.disconnect();
     },
   };
@@ -203,6 +205,14 @@
     }, wait);
   }
 
+  /** The header navigation follows the session kind and the current page (js/shellnav.js). */
+  function renderNav() {
+    const nav = document.querySelector(".shellbar nav");
+    if (!nav || !HH.flow) return;
+    const record = HH.auth.record() || {};
+    HH.shellnav.render(nav, { kind: HH.flow.kind(), memberId: record.member, hash: location.hash }, document);
+  }
+
   async function start() {
     storage = await HH.storage.openStorage(window.indexedDB);
     HH.flow = HH.authflow.createAuthFlow({
@@ -230,6 +240,9 @@
       context: () => ({ data: HH.app.data, clock: HH.clock, auth: HH.auth }),
     });
     await router.start();
+    HH.app.renderNav = renderNav;
+    window.addEventListener("hashchange", renderNav); // registered after the guard, so it sees the final hash
+    renderNav();
     window.addEventListener("online", () => data && data.setOnline(true) && data.flush());
     window.addEventListener("offline", () => data && data.setOnline(false));
     document.addEventListener("visibilitychange", () => {

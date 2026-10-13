@@ -41,7 +41,7 @@
   HH.screens.maskottchen = function (view, ctx) {
     addStyle("mc-style", CSS);
     const back = el("a", "link", "‹ Zurück");
-    back.href = "#/";
+    back.href = "#/einstellungen";
     view.append(back, el("h1", "", "Maskottchen"));
 
     const rec = ctx.auth && ctx.auth.record && ctx.auth.record();

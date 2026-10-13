@@ -99,6 +99,7 @@
 
   function screen(view, ctx) {
     const doc = view.ownerDocument;
+    view.append(h(doc, "a", "link", "‹ Zurück", { href: "#/einstellungen", "data-role": "back" }));
     view.append(h(doc, "h1", "", "Bereiche"));
     const record = ctx.auth && ctx.auth.record();
     if (!ctx.data || !record || !record.member) {

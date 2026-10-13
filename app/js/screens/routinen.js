@@ -190,7 +190,7 @@
   HH.screens.routinen = function (view, ctx) {
     addStyle("rt-style", CSS);
     const back = el("a", "link", "‹ Zurück");
-    back.href = "#/";
+    back.href = "#/einstellungen";
     view.append(back, el("h1", "", "Routine-Aufgaben"));
 
     const rec = ctx.auth && ctx.auth.record && ctx.auth.record();
