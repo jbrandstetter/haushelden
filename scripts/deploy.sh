@@ -38,8 +38,13 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 git -C "$HH_SRC_DIR" rev-parse -q --verify "refs/tags/$tag^{commit}" >/dev/null || die "tag not found" tag="$tag"
 log info "deploy started" tag="$tag"
 
-# 1. Pre-deploy backup, immediately before anything changes (REQ "Release and Deploy").
-"$here/backup.sh" || die "pre-deploy backup failed; nothing was changed" tag="$tag"
+# 1. Pre-deploy backup, immediately before anything changes (REQ "Release and Deploy"). A first install has no
+#    database yet, so there is nothing to back up; every later deploy takes one and aborts without it.
+if [ -f "$HH_DATA_DIR/data.db" ]; then
+  "$here/backup.sh" || die "pre-deploy backup failed; nothing was changed" tag="$tag"
+else
+  log info "first install: no database yet, nothing to back up" tag="$tag"
+fi
 
 # 2. Stage the tagged files next to the install dir so a failure leaves the running install untouched.
 stage="$(mktemp -d "$HH_INSTALL_DIR.stage.XXXXXX")" || die "cannot create staging directory"
