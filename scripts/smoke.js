@@ -27,7 +27,7 @@ function serve(dataDir, extraEnv) {
       `--hooksDir=${path.join(ROOT, "pb_hooks")}`,
       `--publicDir=${path.join(ROOT, "app")}`,
     ],
-    { env: { PATH: process.env.PATH, ...extraEnv } },
+    { env: { ...require("./no-browser.js").noBrowser().env, ...extraEnv } }, // never launches a browser tab
   );
   let output = "";
   child.stdout.on("data", (c) => (output += c));

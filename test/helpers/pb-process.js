@@ -28,6 +28,8 @@ function upsertSuperuser(dataDir, email, password) {
   if (r.status !== 0) throw new Error(`superuser upsert failed: ${r.stderr}`);
 }
 
+const { noBrowser } = require("../../scripts/no-browser.js");
+
 function serve(dataDir, port, env = {}) {
   const child = spawn(
     BINARY,
@@ -38,7 +40,7 @@ function serve(dataDir, port, env = {}) {
       `--migrationsDir=${path.join(ROOT, "pb_migrations")}`,
       `--hooksDir=${path.join(ROOT, "pb_hooks")}`,
     ],
-    { env: { PATH: process.env.PATH, ...env } },
+    { env: { ...noBrowser().env, ...env } }, // never launches a browser tab (see scripts/no-browser.js)
   );
   let output = "";
   child.stdout.on("data", (c) => (output += c));

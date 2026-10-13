@@ -41,7 +41,7 @@ const args = () => [
 async function withServer(fn) {
   const port = await freePort();
   const child = spawn(BINARY, ["serve", `--http=127.0.0.1:${port}`, ...args()], {
-    env: { PATH: process.env.PATH, HH_MODE: "development" },
+    env: { ...require("../../scripts/no-browser.js").noBrowser().env, HH_MODE: "development" },
   });
   const exited = new Promise((resolve) => child.on("exit", resolve));
   const base = `http://127.0.0.1:${port}`;
@@ -88,7 +88,7 @@ before(() => {
     if (f !== RELATION) fs.copyFileSync(path.join(ROOT, "pb_migrations", f), path.join(migrations, f));
   }
   const upsert = spawnSync(BINARY, ["superuser", "upsert", SUPERUSER.email, SUPERUSER.password, ...args()], {
-    env: { PATH: process.env.PATH, HH_MODE: "development" },
+    env: { ...require("../../scripts/no-browser.js").noBrowser().env, HH_MODE: "development" },
     encoding: "utf8",
   });
   assert.equal(upsert.status, 0, upsert.stderr);

@@ -21,7 +21,10 @@ test("prerequisites: pinned PocketBase binary (npm run pb:download) and the sqli
 });
 
 const run = (script, args, env) =>
-  spawnSync("bash", [script, ...args], { encoding: "utf8", env: { PATH: process.env.PATH, ...env } });
+  spawnSync("bash", [script, ...args], {
+    encoding: "utf8",
+    env: { ...require("../../scripts/no-browser.js").noBrowser().env, ...env },
+  });
 const snapshots = (dir) => fs.readdirSync(dir).filter((f) => /^haushelden-.*\.tar\.gz$/.test(f));
 
 async function withServer(fn) {
