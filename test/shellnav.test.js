@@ -1,4 +1,4 @@
-// Governing: SPEC-0001 REQ "Prototype as UI Reference", REQ "Kid Access on Enrolled Devices"
+// Governing: SPEC-0001 REQ "Prototype as UI Reference", REQ "Kid Access on Enrolled Devices", SPEC-0009 REQ "Navigation and Help"
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { createDocument } = require("./helpers/fake-dom-nodes.js");
@@ -15,10 +15,11 @@ test("signed out: only the public Hilfe entry, the brand leads to the sign-in sc
   assert.equal(nav.querySelector("a.brand").getAttribute("href"), "#/anmelden");
 });
 
-test("a parent sees Wer bist du?, Aufgaben, Einkauf (for their own member), Einstellungen and Hilfe", () => {
+test("a parent sees Wer bist du?, Aufgaben, Einkauf and Essen (for their own member), Einstellungen and Hilfe", () => {
   const items = navItems({ kind: "parent", memberId: "mem 1", hash: "#/eltern" });
-  assert.deepEqual(keys(items), ["wer", "eltern", "einkauf", "einstellungen", "hilfe"]);
+  assert.deepEqual(keys(items), ["wer", "eltern", "einkauf", "essen", "einstellungen", "hilfe"]);
   assert.equal(items.find((i) => i.key === "einkauf").href, "#/einkauf/mem%201");
+  assert.equal(items.find((i) => i.key === "essen").href, "#/essen/mem%201");
   assert.equal(items.find((i) => i.key === "eltern").current, true);
 });
 
@@ -27,15 +28,17 @@ test("a PIN session on a family device is offered the same entries as a parent",
     "wer",
     "eltern",
     "einkauf",
+    "essen",
     "einstellungen",
     "hilfe",
   ]);
 });
 
-test("a plain family device sees no parent entries (Aufgaben, Einstellungen)", () => {
+test("a plain family device sees no parent entries (Aufgaben, Einstellungen) but Essen", () => {
   const items = navItems({ kind: "device", hash: "#/wer" });
-  assert.deepEqual(keys(items), ["wer", "einkauf", "hilfe"]);
+  assert.deepEqual(keys(items), ["wer", "einkauf", "essen", "hilfe"]);
   assert.equal(items.find((i) => i.key === "einkauf").href, "#/einkauf", "a device has no member of its own");
+  assert.equal(items.find((i) => i.key === "essen").href, "#/essen");
 });
 
 test("sub-screens highlight their section: Bereiche, Routinen and Maskottchen under Einstellungen, Gelernt under Einkauf", () => {
@@ -45,6 +48,8 @@ test("sub-screens highlight their section: Bereiche, Routinen and Maskottchen un
     assert.equal(current(hash), "einstellungen", hash);
   assert.equal(current("#/gelernt"), "einkauf");
   assert.equal(current("#/einkauf/abc"), "einkauf");
+  assert.equal(current("#/essen"), "essen");
+  assert.equal(current("#/essen/abc", "device"), "essen");
   assert.equal(current("#/kind/abc"), "wer");
   assert.equal(current("#/wer"), "wer");
   assert.equal(current("#/eltern"), "eltern");
@@ -56,7 +61,7 @@ test("render marks exactly the current page with aria-current and replaces the p
   render(nav, { kind: "parent", memberId: "m", hash: "#/bereiche" }, doc);
   render(nav, { kind: "parent", memberId: "m", hash: "#/bereiche" }, doc);
   const links = nav.querySelectorAll("a");
-  assert.equal(links.length, 6, "brand plus five entries, no duplicates after a second render");
+  assert.equal(links.length, 7, "brand plus six entries, no duplicates after a second render");
   const current = links.filter((a) => a.getAttribute("aria-current") === "page");
   assert.deepEqual(
     current.map((a) => a.getAttribute("data-nav")),

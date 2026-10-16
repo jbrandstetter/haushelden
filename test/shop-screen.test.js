@@ -142,6 +142,14 @@ test("open items show the avatar of the member who added them; the cart is its o
   assert.ok(!row("Milch").has("bought"));
 });
 
+test("an item that came from the meal plan says which meal it is for (SPEC-0009)", () => {
+  const withMeal = items.map((i) => (i.id === "2" ? { ...i, source_meal: "Spaghetti" } : i));
+  const { view } = open({ data: fakeData(withMeal) });
+  const nm = (name) => view.all((e) => e.has("nm")).find((e) => e.textContent.startsWith(name));
+  assert.equal(nm("Brot").textContent, "Brotfür Spaghetti");
+  assert.equal(nm("Milch").textContent, "Milch");
+});
+
 test("ticking sets the household day, un-ticking clears it", () => {
   const { view, data } = open();
   const rows = view.all((e) => e.has("sitem"));

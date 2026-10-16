@@ -28,7 +28,7 @@
       title: "Was ist Haushelden?",
       blocks: [
         {
-          p: "Haushelden ist der Familienplaner dieses Haushalts: Aufgaben zum Abhaken für die Kinder, Aufgaben und Zuständigkeiten für die Eltern, ein gemeinsamer Kalender und die Einkaufslisten.",
+          p: "Haushelden ist der Familienplaner dieses Haushalts: Aufgaben zum Abhaken für die Kinder, Aufgaben und Zuständigkeiten für die Eltern, ein gemeinsamer Kalender, die Einkaufslisten und der Essensplan für die Woche.",
         },
         { p: "Alle Daten liegen auf dem Familienserver zu Hause. Es gibt keine Cloud und kein Tracking." },
       ],
@@ -106,6 +106,23 @@
             "Im Laden abhaken heißt: gekauft. Mit „Einkauf fertig“ räumen die Eltern die abgehakten Sachen weg.",
             "Haushelden merkt sich, wie oft ihr etwas kauft, und setzt es von selbst wieder auf die Liste, mit ✨ und dem Grund. Entfernst du so etwas ungekauft, kommt es erst später wieder.",
             "Beim Tippen schlägt die App Dinge vor, die ihr schon früher gekauft habt.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "essen",
+      title: "Essen planen",
+      blocks: [
+        {
+          list: [
+            "Unter „Essen“ siehst du die Woche von Montag bis Sonntag, mit Mittagessen und Abendessen für jeden Tag. Heute ist farbig hervorgehoben. Mit den Pfeilen blätterst du durch die Wochen, „Diese Woche“ bringt dich zurück.",
+            "Tippe auf „+ eintragen“ und schreib, was es gibt. Beim Tippen schlägt die App Gerichte vor, die ihr schon kennt, die am längsten nicht gekocht wurden zuerst. Du kannst auch einfach etwas Neues schreiben.",
+            "Die Kinder dürfen freie Plätze füllen und ihre eigenen Vorschläge ändern. Was die Eltern eingetragen haben, können nur die Eltern ändern. Wenn ein Elternteil etwas anderes einträgt, gilt das und die alten Daumen sind weg.",
+            "Jeder darf pro Mahlzeit einen Daumen hoch oder runter geben. Noch einmal tippen nimmt ihn zurück. Unter „Gerichte“ siehst du, welche Gerichte besonders gut ankommen.",
+            "Die Gerichte (mit Zutaten, eine pro Zeile) legt jeder unter „Gerichte“ an. Die Eltern können mit „Zutaten auf die Liste“ alles für ein Gericht, einen Tag oder die ganze Woche auf die Einkaufsliste setzen. Was schon draufsteht, kommt nicht doppelt.",
+            "Die Eltern können eine Woche auf eine andere kopieren und eine Woche leeren. Beim Kopieren in eine Woche, die nicht leer ist, fragt die App, ob sie ersetzen oder nur freie Plätze füllen soll.",
+            "Auf der Kinderseite und bei „Wer bist du?“ steht, was es heute gibt.",
           ],
         },
       ],

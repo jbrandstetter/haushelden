@@ -1,5 +1,6 @@
 // Governing: SPEC-0001 REQ "Prototype as UI Reference" (the prototype always shows where you are and how to get
-// back), REQ "Kid Access on Enrolled Devices" (a family device sees no parent entries)
+// back), REQ "Kid Access on Enrolled Devices" (a family device sees no parent entries),
+// SPEC-0009 REQ "Navigation and Help" (Essen for parents, PIN sessions and family devices)
 //
 // The navigation bar in the page header: it is built from the session kind and the current page, so every
 // screen has it. Pure `navItems` (tested) plus a small DOM `render`.
@@ -22,6 +23,7 @@
     ich: "eltern",
     einkauf: "einkauf",
     gelernt: "einkauf",
+    essen: "essen",
     einstellungen: "einstellungen",
     routinen: "einstellungen",
     maskottchen: "einstellungen",
@@ -49,6 +51,12 @@
       key: "einkauf",
       label: "Einkauf",
       href: memberId ? `#/einkauf/${encodeURIComponent(memberId)}` : "#/einkauf",
+    });
+    // Everybody plans and votes (SPEC-0009 REQ "Navigation and Help"); the route guard keeps it off the public list.
+    items.push({
+      key: "essen",
+      label: "Essen",
+      href: memberId ? `#/essen/${encodeURIComponent(memberId)}` : "#/essen",
     });
     if (parentLike) items.push({ key: "einstellungen", label: "Einstellungen", href: "#/einstellungen" });
     items.push(help);
