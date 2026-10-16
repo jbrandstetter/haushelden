@@ -58,6 +58,7 @@ const steps = [
   { collection: "todos", records: (ctx) => require("./todos.js").todoRecords(ctx) },
   ...require("./learning.js").steps, // DEV-only fake purchase history (before the shopping items)
   ...require("./shopping.js").steps, // lists come from the migration; items: scripts/seed/shopping.js
+  ...require("./mealplan.js").steps, // dishes, a week of entries and thumbs (SPEC-0009)
   // routines, todos, areas, lists, shop_items and purchases are added by the stories that create those
   // collections, using fixtures.routines / todos / areas / lists / purchases.
 ];
