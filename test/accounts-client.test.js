@@ -80,6 +80,16 @@ test("Unenrolled device: only the sign-in screens are reachable without a sessio
   for (const h of ["#/anmelden", "#/setup", "#/einladung/tok"]) assert.equal(flowLib.guard(h, null), null, h);
 });
 
+test('Essen is for every session kind and never public (SPEC-0009 REQ "Navigation and Help")', () => {
+  for (const kind of ["device", "pin", "parent"]) {
+    assert.equal(flowLib.guard("#/essen", kind), null, kind);
+    assert.equal(flowLib.guard("#/essen/kind1", kind), null, kind);
+  }
+  assert.equal(flowLib.guard("#/essen", null), "#/anmelden", "signed out: sign in first");
+  assert.equal(flowLib.PUBLIC_ROUTES.includes("essen"), false);
+  assert.equal(flowLib.PARENT_ROUTES.includes("essen"), false, "kids on a family device open it too");
+});
+
 test("Enrolled iPad starts at Wer bist du?; signed-in users skip the sign-in screens", () => {
   assert.equal(flowLib.guard("", "device"), "#/wer");
   assert.equal(flowLib.guard("#/", "pin"), "#/wer");

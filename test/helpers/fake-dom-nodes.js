@@ -46,6 +46,12 @@ class Element extends Node {
       }
     }
   }
+  insertBefore(node, ref) {
+    const at = ref ? this.children.indexOf(ref) : -1;
+    if (at === -1) return this.append(node);
+    node.parent = this;
+    this.children.splice(at, 0, node);
+  }
   get textContent() {
     return this.children.map((c) => c.textContent).join("");
   }

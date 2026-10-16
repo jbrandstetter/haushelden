@@ -77,11 +77,21 @@ function boot({
   reduced = false,
   random = () => 0.99,
   store = {},
+  meals = [],
+  mealVotes = [],
 } = {}) {
   const doc = createDocument();
   const view = doc.createElement("main");
   view.ownerDocument = doc;
-  const data = stubData({ members: MEMBERS.slice(), routines, routine_done: ticks.slice(), settings });
+  const data = stubData({
+    members: MEMBERS.slice(),
+    routines,
+    routine_done: ticks.slice(),
+    settings,
+    meal_plan: meals.slice(),
+    meal_votes: mealVotes.slice(),
+    dishes: [],
+  });
   const spoken = [];
   const confetti = [];
   const kv = { ...store };
@@ -319,4 +329,28 @@ test("cleanup unsubscribes from every collection", () => {
   b.cleanup();
   b.data.emit("routine_done");
   assert.ok(b.view.querySelector(".kid")); // nothing crashed, the last render stays
+});
+
+test("Scenario: kid looks at the board - tonight's dinner by a parent shows 'Heute: Pizza' with thumbs and no way to edit it", async () => {
+  const b = boot({
+    meals: [{ id: "m1", date: WED, slot: "dinner", title: "Pizza", dish: "", added_by: "papa" }],
+    mealVotes: [{ id: "v1", entry: "m1", member: "papa", value: "up" }],
+  });
+  const line = b.view.querySelector(".mealtoday");
+  assert.equal(line.querySelector(".mt-text").textContent, "Heute: Pizza");
+  assert.equal(line.querySelector(".thumb.up").textContent, "👍 1");
+  assert.equal(line.querySelector("input"), null);
+  assert.equal(line.querySelector(".meal-edit"), null);
+  line.querySelector(".thumb.up").click();
+  await Promise.resolve();
+  assert.deepEqual(b.data.calls, [["create", "meal_votes", { entry: "m1", member: "kind1", value: "up" }]]);
+  assert.equal(b.view.querySelector(".mealtoday .thumb.up").getAttribute("aria-pressed"), "true");
+  assert.equal(b.tiles().length, 5, "the routine tiles are untouched");
+});
+
+test("the board shows no meals line when nothing is planned for today", () => {
+  const b = boot({
+    meals: [{ id: "m1", date: "2026-10-15", slot: "dinner", title: "Morgen", dish: "", added_by: "papa" }],
+  });
+  assert.ok(b.view.querySelector(".mealtoday").className.includes("hidden"), "the line stays hidden");
 });

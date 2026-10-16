@@ -6,6 +6,7 @@
 // added them, "Im Wagen" with "Einkauf fertig", and (parents only) list management. The member id in the route is
 // the profile the screen was opened from; items added here are attributed to that member. Without one a parent
 // is attributed to their own member and a device account picks who is writing.
+// Items put on the list from the meal plan show the meal they are for (SPEC-0009).
 // Purchase-history story: automatic items show their reason, parents get suggestions while typing (purchases are
 // readable by parents only), and opening a list asks the server to refill it (REQ "Automatic Refill").
 
@@ -123,6 +124,8 @@
       const nm = el("div", "nm", item.name);
       const why = learning.reasonEl(document, item, ctx.clock.today());
       if (why) nm.append(why);
+      // Put there from the meal plan (SPEC-0009): say which meal it is for.
+      if (item.source_meal) nm.append(el("small", "why", `für ${item.source_meal}`));
       row.append(cb, nm, avatarOf(memberOf(item.by)));
       if (isParent && !item.bought) {
         const x = el("button", "x", "×");

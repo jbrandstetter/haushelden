@@ -1,6 +1,6 @@
 // Governing: ADR-0003 (kid access via device accounts: the board runs under a device or a parent session),
 // ADR-0001 (reads and writes go through the data layer, ticks work offline via its outbox),
-// SPEC-0002 REQ "Today Board", REQ "Tomorrow Preview", REQ "Week Strip and Streak", REQ "Completion Celebration",
+// SPEC-0009 REQ "What Is for Dinner Today", SPEC-0002 REQ "Today Board", REQ "Tomorrow Preview", REQ "Week Strip and Streak", REQ "Completion Celebration",
 // REQ "Mascot Feedback", REQ "No Competitive or Reward Mechanics by Default"; SPEC-0001 REQ "Prototype as UI
 // Reference" (prototype renderKid), REQ "Household Day and Time Zone"
 //
@@ -15,13 +15,14 @@
     node ? require("../routines.js") : root.HH.routines,
     node ? require("../dates.js") : root.HH.dates,
     root,
+    node ? require("../meals.js") : root.HH.meals,
   );
   if (node) module.exports = api;
   else {
     root.HH.kind = api;
     root.HH.screens.kind = api.screen;
   }
-})(typeof self !== "undefined" ? self : this, function (B, R, dates, root) {
+})(typeof self !== "undefined" ? self : this, function (B, R, dates, root, meals) {
   "use strict";
 
   function h(doc, tag, className, text, attrs) {
@@ -40,7 +41,7 @@
 
   // ---- view ----------------------------------------------------------------------------------------------
   /**
-   * model: { member, members, routines, ticks, today, mascot, line, sound, streak, fx, celebration }
+   * model: { member, members, routines, ticks, today, mascot, line, sound, streak, fx, celebration, mealsEl }
    *  - fx: { hop, pop } visual reactions to the last tick (already false under reduced motion)
    *  - celebration: null | { text }
    * actions: { toggle(routine), petTap(), toggleSound(), dismiss() }
@@ -109,7 +110,9 @@
       today.append(tile);
     }
 
-    container.append(top, mascot, h(doc, "div", "section", "Heute"), today);
+    // what is for dinner today: a read-only line with the thumbs (SPEC-0009 REQ "What Is for Dinner Today")
+    if (m.mealsEl) container.append(top, mascot, m.mealsEl, h(doc, "div", "section", "Heute"), today);
+    else container.append(top, mascot, h(doc, "div", "section", "Heute"), today);
 
     // tomorrow's hobbies with their hints
     const tomorrow = B.tomorrowHobbies(m);
@@ -314,6 +317,9 @@
       greeted: false,
       sound: env.store.get(SOUND_KEY) !== "0",
     };
+    const mealsLine = meals
+      ? meals.todayLine({ data, doc, today: () => ctx.clock.today(), who: memberId })
+      : null;
     const inflight = new Set();
     const timers = [];
     const host = h(doc, "div");
@@ -370,6 +376,7 @@
             streak: currentStreak(),
             fx: ui.fx,
             celebration: ui.celebration,
+            mealsEl: mealsLine && mealsLine.el,
           },
           actions,
         ),
@@ -480,6 +487,7 @@
     ];
     return () => {
       offs.forEach((off) => off());
+      if (mealsLine) mealsLine.dispose();
       timers.forEach(clearTimeout);
     };
   }

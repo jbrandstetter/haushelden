@@ -54,6 +54,8 @@ below reviewable and testable.
 | `lists` (SPEC-0005) | full | read | |
 | `shop_items` (SPEC-0005) | full | read, create, update `bought` | `by` must be a member; devices cannot delete items or lists (only parents use "Einkauf fertig") |
 | `purchases` (SPEC-0005) | read, delete (reset) | none (written by hook) | maintained server-side on tick/un-tick (ADR-0006); unique on list, key, day |
+| `dishes`, `meal_plan` (SPEC-0009) | full (`added_by` is the acting parent on create) | read, create where `added_by.role = "kid"`, update/delete records added by a kid | `added_by` never changes; unique (date, slot); a parent's records are out of reach of a device |
+| `meal_votes` (SPEC-0009) | read all; write only own (`member = auth.member`) | read, write where `member.role = "kid"` | unique (entry, member); deleted with the entry |
 | `settings` (mascot, auto-refill, time zone override) | full | read | single record |
 | `mascot_lines` (SPEC-0006, later) | read, approve | read approved for today | |
 | `proposals` (SPEC-0006, later) | full | none | |
@@ -68,6 +70,7 @@ below reviewable and testable.
   `POST sessions/revoke` (sign out everywhere);
 - household: `GET config` (household time zone), `GET export` (all household data as JSON, credentials scrubbed);
 - shopping: `POST refill` (refill a list when it is opened), `POST purchases/reset` (parents).
+- meal plan: `POST mealplan/shopping` (parents; the ingredients of a dish, a day or a week onto the grocery list, SPEC-0009).
 Everything else uses PocketBase's standard collection and realtime API. Record hooks add the server-side rules that
 collection rules cannot express (member guards, purchase recording, sticky "bought", deferral after an unbought removal).
 **Rationale**: Keeps custom code to the edges where the household's rules differ from a generic backend.

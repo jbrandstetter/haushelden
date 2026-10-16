@@ -1,4 +1,4 @@
-// Governing: SPEC-0008 REQ "Family Help Page" (public, German, nothing internal), ADR-0004
+// Governing: SPEC-0008 REQ "Family Help Page" (public, German, nothing internal), SPEC-0009 REQ "Navigation and Help", ADR-0004
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { createDocument } = require("./helpers/fake-dom-nodes.js");
@@ -22,6 +22,7 @@ test("it covers the topics a family needs: installing, signing in, kids' list, s
     "anmelden",
     "tagesliste",
     "einkaufen",
+    "essen",
     "offline",
     "probleme",
     "datenschutz",
@@ -32,6 +33,17 @@ test("it covers the topics a family needs: installing, signing in, kids' list, s
   assert.match(all, /Als Familiengerät einrichten/);
   assert.match(all, /Einkauf fertig/);
   assert.match(all, /nicht synchronisiert/);
+  assert.match(all, /Zutaten auf die Liste/);
+});
+
+test("the meal plan section describes the week, who may change what, the thumbs and the ingredients (SPEC-0009)", () => {
+  const essen = SECTIONS.find((s) => s.id === "essen");
+  const all = essen.blocks.flatMap((b) => b.list || b.p || []).join("\n");
+  assert.match(all, /Montag bis Sonntag/);
+  assert.match(all, /Kinder/);
+  assert.match(all, /Daumen/);
+  assert.match(all, /Einkaufsliste/);
+  assert.match(all, /kopieren/);
 });
 
 test("nothing internal in a page anyone can open: no addresses, hosts, e-mails, secrets or real names", () => {

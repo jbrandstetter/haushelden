@@ -1,6 +1,6 @@
 // Governing: ADR-0003 (kid access via device accounts), SPEC-0001 REQ "First-Run Setup", REQ "Parent
 // Authentication", REQ "Device Enrollment and Removal", REQ "Kid Access on Enrolled Devices", REQ "Prototype as UI
-// Reference" (renderSetup, renderWho), Accessibility Requirements
+// Reference" (renderSetup, renderWho), Accessibility Requirements; SPEC-0009 REQ "What Is for Dinner Today"
 //
 // Screens for accounts and access (registered by js/screens/{setup,anmelden,einladung,wer}.js), ported from the prototype: first-run setup (`#/setup`), parent sign-in
 // (`#/anmelden`), invite acceptance (`#/einladung/<token>`) and "Wer bist du?" (`#/wer`) with the parent-PIN prompt
@@ -368,10 +368,23 @@
       shop = HH.shop.entryButton({ data: ctx.data, who: own && own.member, doc });
       wrap.insertBefore(shop.el, overlay);
     }
+    // Today's meals as a read-only line with the thumbs (SPEC-0009 REQ "What Is for Dinner Today"); a family
+    // device has no member of its own, so there the thumbs are shown but only tappable on the kid's own board.
+    let meals = null;
+    if (ctx.clock && typeof HH !== "undefined" && HH.meals && HH.meals.todayLine) {
+      meals = HH.meals.todayLine({
+        data: ctx.data,
+        doc,
+        today: () => ctx.clock.today(),
+        who: kind === "device" ? null : own && own.member,
+      });
+      wrap.insertBefore(meals.el, overlay);
+    }
     const off = ctx.data.subscribe("members", renderMembers);
     return () => {
       off();
       if (shop) shop.dispose();
+      if (meals) meals.dispose();
     };
   }
 
