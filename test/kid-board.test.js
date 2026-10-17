@@ -79,6 +79,7 @@ function boot({
   store = {},
   meals = [],
   mealVotes = [],
+  chores = [],
 } = {}) {
   const doc = createDocument();
   const view = doc.createElement("main");
@@ -91,6 +92,7 @@ function boot({
     meal_plan: meals.slice(),
     meal_votes: mealVotes.slice(),
     dishes: [],
+    chores: chores.slice(),
   });
   const spoken = [];
   const confetti = [];
@@ -322,6 +324,32 @@ test("unknown member, a parent's id and a missing id show a message instead of a
   assert.match(boot({ memberId: "nobody" }).view.textContent, /gibt es nicht/);
   assert.match(boot({ memberId: "papa" }).view.textContent, /gibt es nicht/);
   assert.match(boot({ memberId: "" }).view.textContent, /Welches Kind/);
+});
+
+test("Scenario: reminder on the board - on a cleaning day the child's own open chores are named, nobody else's", () => {
+  const chore = (id, assignee, done = false) => ({ id, day: WED, title: id, assignee, done });
+  const b = boot({
+    chores: [
+      chore("a", "kind1"),
+      chore("b", "kind1", true),
+      chore("c", "kind1"),
+      chore("d", "kind1"),
+      chore("e", "papa"),
+      chore("f", "kind2"),
+    ],
+  });
+  const line = b.view.querySelector(".cleantoday");
+  assert.equal(
+    line.querySelector(".ct-text").textContent,
+    "Putztag heute: 3 von 4 deiner Aufgaben sind noch offen.",
+  );
+  assert.equal(line.querySelector(".ct-link").getAttribute("href"), "#/putztag/kind1");
+  assert.equal(b.tiles().length, 5, "the routine tiles are untouched");
+});
+
+test("a day without chores shows no cleaning line", () => {
+  const b = boot({ chores: [{ id: "a", day: "2026-10-18", title: "a", assignee: "kind1", done: false }] });
+  assert.equal(b.view.querySelector(".cleantoday").className.includes("hidden"), true);
 });
 
 test("cleanup unsubscribes from every collection", () => {

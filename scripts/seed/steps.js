@@ -59,6 +59,7 @@ const steps = [
   ...require("./learning.js").steps, // DEV-only fake purchase history (before the shopping items)
   ...require("./shopping.js").steps, // lists come from the migration; items: scripts/seed/shopping.js
   ...require("./mealplan.js").steps, // dishes, a week of entries and thumbs (SPEC-0009)
+  ...require("./chores.js").steps, // standard chores and an upcoming cleaning day (SPEC-0010)
   // routines, todos, areas, lists, shop_items and purchases are added by the stories that create those
   // collections, using fixtures.routines / todos / areas / lists / purchases.
 ];

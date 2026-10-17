@@ -25,6 +25,7 @@
     ["hilfe", "js/screens/hilfe.js"], // family help page, public (SPEC-0008)
     ["einkauf", "js/screens/shopping.js"], // shopping lists (#/einkauf/<member id>)
     ["essen", "js/screens/essen.js"], // weekly meal plan and dish library, #/essen/<member id> (SPEC-0009)
+    ["putztag", "js/screens/putztag.js"], // family cleaning day, #/putztag/<member id> (SPEC-0010)
     ["gelernt", "js/screens/gelernt.js"], // learned items, parents (SPEC-0005)
     ["bereiche", "js/screens/bereiche.js"], // areas of responsibility management (SPEC-0003)
     ["einstellungen", "js/screens/einstellungen.js"], // parents' settings and data export (#12)

@@ -28,7 +28,7 @@
       title: "Was ist Haushelden?",
       blocks: [
         {
-          p: "Haushelden ist der Familienplaner dieses Haushalts: Aufgaben zum Abhaken für die Kinder, Aufgaben und Zuständigkeiten für die Eltern, ein gemeinsamer Kalender, die Einkaufslisten und der Essensplan für die Woche.",
+          p: "Haushelden ist der Familienplaner dieses Haushalts: Aufgaben zum Abhaken für die Kinder, Aufgaben und Zuständigkeiten für die Eltern, ein gemeinsamer Kalender, die Einkaufslisten, der Essensplan für die Woche und der Putztag.",
         },
         { p: "Alle Daten liegen auf dem Familienserver zu Hause. Es gibt keine Cloud und kein Tracking." },
       ],
@@ -123,6 +123,22 @@
             "Die Gerichte (mit Zutaten, eine pro Zeile) legt jeder unter „Gerichte“ an. Die Eltern können mit „Zutaten auf die Liste“ alles für ein Gericht, einen Tag oder die ganze Woche auf die Einkaufsliste setzen. Was schon draufsteht, kommt nicht doppelt.",
             "Die Eltern können eine Woche auf eine andere kopieren und eine Woche leeren. Beim Kopieren in eine Woche, die nicht leer ist, fragt die App, ob sie ersetzen oder nur freie Plätze füllen soll.",
             "Auf der Kinderseite und bei „Wer bist du?“ steht, was es heute gibt.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "putztag",
+      title: "Putztag",
+      blocks: [
+        {
+          list: [
+            "Unter „Putztag“ steht die Liste für den Familien-Putztag. Alle sehen die ganze Liste, sortiert nach Personen, und oben, wie viel schon geschafft ist.",
+            "Hake ab, was du erledigt hast. Kinder können nur ihre eigenen Aufgaben abhaken, die der anderen sehen sie, aber sie sind grau. Die Eltern können alles abhaken. Noch einmal tippen nimmt es zurück.",
+            "Die Eltern legen den Putztag an: „Putztag anlegen“, Datum wählen (vorgeschlagen ist der nächste Samstag). Dann kommen alle Standard-Aufgaben auf die Liste. Aufgaben für „Jedes Kind“ bekommt jedes Kind einmal. Legst du einen Tag zweimal an, kommt nichts doppelt.",
+            "Unter „Standard-Aufgaben“ stehen die üblichen Aufgaben. Beim ersten Mal übernehmen die Eltern die Standardliste und sagen, wer Papas und wer Mamas Liste macht. Danach kann alles geändert, gelöscht und ergänzt werden. Seltene Aufgaben (zum Beispiel „Staubsaugerfilter reinigen“) lassen sich auf alle 2 Wochen oder monatlich stellen.",
+            "Mit dem Stift an einer Aufgabe ändern die Eltern den Text oder wer sie macht. „+ Aufgabe hinzufügen“ ist für etwas, das nur an diesem Tag dran ist.",
+            "Am Putztag steht auf der Kinderseite und bei „Wer bist du?“ eine Zeile dazu.",
           ],
         },
       ],

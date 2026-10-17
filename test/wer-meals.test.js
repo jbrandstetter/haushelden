@@ -5,6 +5,7 @@ const assert = require("node:assert/strict");
 const { createDocument } = require("./helpers/fake-dom-nodes.js");
 const dates = require("../app/js/dates.js");
 const meals = require("../app/js/meals.js");
+const chores = require("../app/js/chores.js");
 const createUi = require("../app/js/auth-ui.js");
 
 const MEMBERS = [
@@ -17,15 +18,15 @@ const PLAN = [
 ];
 const VOTES = [{ id: "v1", entry: "m1", member: "kind1", value: "up" }];
 
-function open(kind, record) {
+function open(kind, record, choreRows = []) {
   globalThis.location = { hash: "" };
-  const ui = createUi({ dates, meals, flow: { kind: () => kind } });
+  const ui = createUi({ dates, meals, chores, flow: { kind: () => kind } });
   const doc = createDocument();
   const make = doc.createElement;
   doc.createElement = (tag) => Object.assign(make(tag), { style: { setProperty() {} }, focus() {} });
   const view = doc.createElement("div");
   view.ownerDocument = doc;
-  const rows = { members: MEMBERS, meal_plan: PLAN, meal_votes: VOTES, dishes: [] };
+  const rows = { members: MEMBERS, meal_plan: PLAN, meal_votes: VOTES, dishes: [], chores: choreRows };
   const calls = [];
   const cleanup = ui.wer(view, {
     args: [],
@@ -64,4 +65,26 @@ test("the line is cleaned up with the screen", () => {
   const { cleanup } = open("device", { id: "dev1", collectionName: "devices" });
   assert.equal(typeof cleanup, "function");
   cleanup();
+});
+
+// SPEC-0010 REQ "Cleaning Day on the Kid Board"
+const CHORES = [
+  { id: "c1", day: "2026-10-14", title: "Bad", assignee: "kind1", done: true },
+  { id: "c2", day: "2026-10-14", title: "Saugen", assignee: "kind1", done: false },
+  { id: "c3", day: "2026-10-14", title: "Fenster", assignee: "papa", done: false },
+];
+
+test("on a cleaning day the chooser shows how far the whole day is, with a link and nothing to change", () => {
+  const { view } = open("device", { id: "dev1", collectionName: "devices" }, CHORES);
+  const line = view.querySelector(".cleantoday");
+  assert.equal(line.querySelector(".ct-text").textContent, "Putztag heute: 1 von 3 erledigt.");
+  assert.equal(line.querySelector(".ct-link").getAttribute("href"), "#/putztag");
+  assert.equal(line.querySelectorAll("button").length, 0);
+});
+
+test("on a day without chores the chooser has no cleaning line", () => {
+  const { view } = open("device", { id: "dev1", collectionName: "devices" }, [
+    { ...CHORES[0], day: "2026-10-18" },
+  ]);
+  assert.equal(view.querySelector(".cleantoday").className.includes("hidden"), true);
 });

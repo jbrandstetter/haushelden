@@ -1,0 +1,134 @@
+/* Family cleaning day (SPEC-0010): the Putztag screen and the "Putztag heute" line. Uses the tokens of app.css;
+   the screen also carries the .essen class, so its header, tabs, hints and forms are styled by meals.css. */
+.chore-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 14px;
+}
+.chore-bar {
+  --p: 0%;
+  flex: 1;
+  height: 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c, var(--green)) 18%, transparent);
+  overflow: hidden;
+  position: relative;
+}
+.chore-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--p);
+  background: var(--c, var(--green));
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+.chore-count {
+  font-weight: 750;
+  font-size: 15px;
+  white-space: nowrap;
+}
+.chore-group {
+  background: var(--card);
+  box-shadow: var(--shadow);
+  border-radius: 22px;
+  padding: 10px 14px 6px;
+  margin: 0 0 12px;
+}
+.chore-grouphead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0 6px;
+}
+.chore-grouphead .by {
+  font-size: 22px;
+}
+.chore-grouphead b {
+  flex: 1;
+  font-size: 18px;
+}
+.chore-groupcount {
+  color: var(--subtext);
+  font-size: 14px;
+  font-weight: 700;
+}
+.chore {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-top: 1px solid color-mix(in srgb, var(--overlay) 25%, transparent);
+}
+.chore.pending {
+  opacity: 0.6;
+}
+.chore-check {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 2px solid var(--overlay);
+  background: transparent;
+  color: var(--base);
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.chore-check[disabled] {
+  opacity: 0.45;
+  cursor: default;
+  border-style: dashed;
+}
+.chore.done .chore-check {
+  background: var(--green);
+  border-color: var(--green);
+}
+.chore-title {
+  flex: 1;
+  min-width: 140px;
+  font-weight: 650;
+  font-size: 17px;
+}
+.chore.done .chore-title {
+  text-decoration: line-through;
+  color: var(--subtext);
+}
+.chore .meal-editor {
+  flex: 1 1 100%;
+}
+
+/* "Putztag heute" on the kids' board and "Wer bist du?" */
+.cleantoday {
+  max-width: 620px;
+  margin: 12px auto 0;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  border-radius: 22px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.ct-emoji {
+  font-size: 28px;
+}
+.ct-text {
+  flex: 1;
+  min-width: 160px;
+  font-weight: 750;
+  font-size: 17px;
+}
+.ct-link {
+  color: var(--overlay);
+  font-size: 14px;
+  text-decoration: none;
+}

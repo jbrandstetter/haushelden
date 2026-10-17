@@ -16,13 +16,14 @@
     node ? require("../dates.js") : root.HH.dates,
     root,
     node ? require("../meals.js") : root.HH.meals,
+    node ? require("../chores.js") : root.HH.chores,
   );
   if (node) module.exports = api;
   else {
     root.HH.kind = api;
     root.HH.screens.kind = api.screen;
   }
-})(typeof self !== "undefined" ? self : this, function (B, R, dates, root, meals) {
+})(typeof self !== "undefined" ? self : this, function (B, R, dates, root, meals, chores) {
   "use strict";
 
   function h(doc, tag, className, text, attrs) {
@@ -111,8 +112,11 @@
     }
 
     // what is for dinner today: a read-only line with the thumbs (SPEC-0009 REQ "What Is for Dinner Today")
-    if (m.mealsEl) container.append(top, mascot, m.mealsEl, h(doc, "div", "section", "Heute"), today);
-    else container.append(top, mascot, h(doc, "div", "section", "Heute"), today);
+    // the cleaning day, when today is one (SPEC-0010 REQ "Cleaning Day on the Kid Board")
+    container.append(top, mascot);
+    if (m.mealsEl) container.append(m.mealsEl);
+    if (m.cleanEl) container.append(m.cleanEl);
+    container.append(h(doc, "div", "section", "Heute"), today);
 
     // tomorrow's hobbies with their hints
     const tomorrow = B.tomorrowHobbies(m);
@@ -320,6 +324,9 @@
     const mealsLine = meals
       ? meals.todayLine({ data, doc, today: () => ctx.clock.today(), who: memberId })
       : null;
+    const cleanLine = chores
+      ? chores.todayLine({ data, doc, today: () => ctx.clock.today(), who: memberId })
+      : null;
     const inflight = new Set();
     const timers = [];
     const host = h(doc, "div");
@@ -377,6 +384,7 @@
             fx: ui.fx,
             celebration: ui.celebration,
             mealsEl: mealsLine && mealsLine.el,
+            cleanEl: cleanLine && cleanLine.el,
           },
           actions,
         ),
@@ -488,6 +496,7 @@
     return () => {
       offs.forEach((off) => off());
       if (mealsLine) mealsLine.dispose();
+      if (cleanLine) cleanLine.dispose();
       timers.forEach(clearTimeout);
     };
   }
