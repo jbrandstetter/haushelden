@@ -232,6 +232,8 @@
           await session.set(res.data.token, res.data.record);
           return { state: k };
         }
+        // A server hiccup (5xx, rate limit) says nothing about the session: keep it and work from the local mirror.
+        if (res.status >= 500 || res.status === 429 || res.status === 0) return { state: "offline" };
         // The server no longer accepts the token: a revoked or expired parent session, or a device token that
         // expired or whose device was removed. The enrolled device's own sign-in decides what happens next.
         const back = await backToDevice();

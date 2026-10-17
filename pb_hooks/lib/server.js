@@ -49,7 +49,7 @@ function stampDevice(record) {
 
 /** True when the request carries a short PIN session (a non-refreshable token) instead of a password session. */
 function isPinSession(e) {
-  const header = e.request.header.get("Authorization") || "";
+  const header = (e.requestInfo().headers || {})["authorization"] || "";
   try {
     return $security.parseUnverifiedJWT(header.replace(/^Bearer\s+/i, "")).refreshable === false;
   } catch {
