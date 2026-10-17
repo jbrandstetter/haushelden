@@ -295,6 +295,15 @@ describe("accounts: invites, devices, PIN", () => {
     });
   });
 
+  describe("parent session refresh", () => {
+    it("renews a password session on launch (a 500 here logged everybody out)", async () => {
+      const res = await pb.api("POST", "/api/collections/parents/auth-refresh", { token: papa });
+      assert.equal(res.status, 200, JSON.stringify(res.data));
+      assert.ok(res.data.token);
+      assert.equal(res.data.record.id, papaId);
+    });
+  });
+
   describe("parent PIN", () => {
     let dev;
     before(async () => {
@@ -342,9 +351,9 @@ describe("accounts: invites, devices, PIN", () => {
       assert.equal(claims.refreshable, false);
       assert.equal(claims.id, papaId);
       assert.equal((await pb.api("GET", rec("parents"), { token: res.data.token })).status, 200);
-      assert.ok(
-        (await pb.api("POST", "/api/collections/parents/auth-refresh", { token: res.data.token })).status >=
-          400,
+      assert.equal(
+        (await pb.api("POST", "/api/collections/parents/auth-refresh", { token: res.data.token })).status,
+        403,
       );
       assert.equal((await enroll("Dritt", res.data.token)).res.status, 403);
       assert.equal(

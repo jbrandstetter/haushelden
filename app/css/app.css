@@ -1031,3 +1031,32 @@ canvas#confetti {
 .hilfe .help-list li {
   margin-bottom: 8px;
 }
+
+/* A button whose request is running shows a spinner (sign-in and other forms). */
+.btn.busy {
+  position: relative;
+  padding-right: 2.6em;
+}
+.btn.busy::after {
+  content: "";
+  position: absolute;
+  right: 0.9em;
+  top: 50%;
+  width: 1em;
+  height: 1em;
+  margin-top: -0.5em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: hh-spin 0.8s linear infinite;
+}
+@keyframes hh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn.busy::after {
+    animation-duration: 2.4s;
+  }
+}

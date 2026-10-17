@@ -57,12 +57,16 @@
       ev.preventDefault();
       err.textContent = "";
       btn.disabled = true;
+      btn.className = "btn primary busy";
+      btn.setAttribute("aria-busy", "true");
       try {
         const result = await run();
         if (result.ok) onDone(result);
         else err.textContent = result.message || "Das hat nicht geklappt.";
       } finally {
         btn.disabled = false;
+        btn.className = "btn primary";
+        btn.setAttribute("aria-busy", "false");
       }
     });
     return { form: f, err, button: btn };
