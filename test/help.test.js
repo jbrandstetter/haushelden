@@ -23,6 +23,7 @@ test("it covers the topics a family needs: installing, signing in, kids' list, s
     "tagesliste",
     "einkaufen",
     "essen",
+    "putztag",
     "offline",
     "probleme",
     "datenschutz",
@@ -44,6 +45,16 @@ test("the meal plan section describes the week, who may change what, the thumbs 
   assert.match(all, /Daumen/);
   assert.match(all, /Einkaufsliste/);
   assert.match(all, /kopieren/);
+});
+
+test("the cleaning day section says who sees and ticks what, how a day is started and where the standard chores live (SPEC-0010)", () => {
+  const putztag = SECTIONS.find((s) => s.id === "putztag");
+  const all = putztag.blocks.flatMap((b) => b.list || b.p || []).join("\n");
+  assert.match(all, /ganze Liste/);
+  assert.match(all, /nur ihre eigenen/);
+  assert.match(all, /Putztag anlegen/);
+  assert.match(all, /Standard-Aufgaben/);
+  assert.match(all, /monatlich/);
 });
 
 test("nothing internal in a page anyone can open: no addresses, hosts, e-mails, secrets or real names", () => {

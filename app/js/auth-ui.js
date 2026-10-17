@@ -380,11 +380,18 @@
       });
       wrap.insertBefore(meals.el, overlay);
     }
+    // The cleaning day, when today is one (SPEC-0010 REQ "Cleaning Day on the Kid Board"): the progress of the whole day.
+    let clean = null;
+    if (ctx.clock && typeof HH !== "undefined" && HH.chores && HH.chores.todayLine) {
+      clean = HH.chores.todayLine({ data: ctx.data, doc, today: () => ctx.clock.today(), who: null });
+      wrap.insertBefore(clean.el, overlay);
+    }
     const off = ctx.data.subscribe("members", renderMembers);
     return () => {
       off();
       if (shop) shop.dispose();
       if (meals) meals.dispose();
+      if (clean) clean.dispose();
     };
   }
 
